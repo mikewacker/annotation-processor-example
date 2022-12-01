@@ -2,8 +2,11 @@ package org.example.immutable.processor.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.guava.GuavaModule;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.google.testing.compile.Compilation;
 import java.io.IOException;
 import java.io.Reader;
@@ -23,7 +26,17 @@ import javax.tools.StandardLocation;
  */
 public final class TestResources {
 
-    private static final ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper mapper = createObjectMapper();
+
+    /**
+     * Test template that serializes and deserializes an object,
+     * verifying that the deserialized object is equal to the original object.
+     */
+    public static <T> void serializeAndDeserialize(T t, TypeReference<T> type) throws JsonProcessingException {
+        String json = mapper.writeValueAsString(t);
+        T deserializedT = mapper.readValue(json, type);
+        assertThat(deserializedT).isEqualTo(t);
+    }
 
     /**
      * Saves a corresponding object for the type to a resource file during annotation processing.
@@ -51,6 +64,14 @@ public final class TestResources {
         String resourcePath = sourcePath.replace(".java", ".json");
         FileObject resourceFile = getResourceFile(compilation, resourcePath);
         return loadObject(resourceFile, type);
+    }
+
+    private static ObjectMapper createObjectMapper() {
+        // @Value.Immutable uses these types behind the scenes.
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new Jdk8Module());
+        mapper.registerModule(new GuavaModule());
+        return mapper;
     }
 
     /** Creates a resource file for the type during annotation processing. */
