@@ -1,0 +1,18 @@
+plugins {
+    id 'org.example.immutable.java-conventions'
+    id 'java-library'
+}
+
+dependencies {
+    compileOnly 'com.google.auto.service:auto-service-annotations:1.0.1'
+    annotationProcessor 'com.google.auto.service:auto-service:1.0.1'
+
+    implementation project(':immutable-annotations')
+
+    testImplementation 'com.google.testing.compile:compile-testing:0.19'
+}
+
+test {
+    // See: https://github.com/google/compile-testing/issues/222
+    jvmArgs '--add-opens=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED'
+}
