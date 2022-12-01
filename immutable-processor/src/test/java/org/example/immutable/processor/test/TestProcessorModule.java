@@ -12,6 +12,7 @@ import javax.annotation.processing.Processor;
 import org.example.immutable.processor.base.ImmutableBaseLiteProcessorTest;
 import org.example.immutable.processor.base.LiteProcessor;
 import org.example.immutable.processor.base.ProcessorScope;
+import org.example.immutable.processor.generator.ImmutableGeneratorTest;
 
 /**
  * Provides all test implementations of {@link LiteProcessor}
@@ -51,4 +52,12 @@ public interface TestProcessorModule {
     @LiteProcessorClassKey(ImmutableBaseLiteProcessorTest.TestLiteProcessor.class)
     LiteProcessor bindImmutableBaseLiteProcessorTestLiteProcessor(
             ImmutableBaseLiteProcessorTest.TestLiteProcessor liteProcessor);
+
+    // org.example.immutable.processor.generator
+
+    @Binds
+    @ProcessorScope
+    @IntoMap
+    @LiteProcessorClassKey(ImmutableGeneratorTest.TestLiteProcessor.class)
+    LiteProcessor bindImmutableGeneratorTestLiteProcessor(ImmutableGeneratorTest.TestLiteProcessor liteProcessor);
 }
