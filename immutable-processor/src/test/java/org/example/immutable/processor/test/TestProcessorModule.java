@@ -13,6 +13,7 @@ import org.example.immutable.processor.base.ImmutableBaseLiteProcessorTest;
 import org.example.immutable.processor.base.LiteProcessor;
 import org.example.immutable.processor.base.ProcessorScope;
 import org.example.immutable.processor.generator.ImmutableGeneratorTest;
+import org.example.immutable.processor.modeler.ElementNavigatorTest;
 
 /**
  * Provides all test implementations of {@link LiteProcessor}
@@ -60,4 +61,12 @@ public interface TestProcessorModule {
     @IntoMap
     @LiteProcessorClassKey(ImmutableGeneratorTest.TestLiteProcessor.class)
     LiteProcessor bindImmutableGeneratorTestLiteProcessor(ImmutableGeneratorTest.TestLiteProcessor liteProcessor);
+
+    // org.example.immutable.processor.modeler
+
+    @Binds
+    @ProcessorScope
+    @IntoMap
+    @LiteProcessorClassKey(ElementNavigatorTest.TestLiteProcessor.class)
+    LiteProcessor bindElementNavigatorTestLiteProcessor(ElementNavigatorTest.TestLiteProcessor liteProcessor);
 }
