@@ -1,0 +1,4 @@
+plugins {
+    id 'org.example.immutable.java-conventions'
+    id 'java-library'
+}
