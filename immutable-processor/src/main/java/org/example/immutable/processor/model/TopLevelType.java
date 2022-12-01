@@ -5,7 +5,11 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.immutables.value.Value;
 
-/** Raw top-level type. */
+/**
+ * Raw top-level type.
+ *
+ * <p>It can be assumed that the type has a package.</p>
+ */
 @Value.Immutable
 @JsonSerialize(as = ImmutableTopLevelType.class)
 @JsonDeserialize(as = ImmutableTopLevelType.class)
