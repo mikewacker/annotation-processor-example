@@ -1,51 +1,40 @@
 package org.example.immutable.processor;
 
 import com.google.auto.service.AutoService;
-import java.util.Set;
-import javax.annotation.processing.Completion;
+import dagger.BindsInstance;
+import dagger.Component;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.Processor;
-import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.SourceVersion;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.TypeElement;
 import org.example.immutable.Immutable;
+import org.example.immutable.processor.base.ImmutableBaseProcessor;
+import org.example.immutable.processor.base.LiteProcessor;
+import org.example.immutable.processor.base.ProcessorModule;
+import org.example.immutable.processor.base.ProcessorScope;
 
 /** Processes interfaces annotated with {@link Immutable}. */
 @AutoService(Processor.class)
-public final class ImmutableProcessor implements Processor {
+public final class ImmutableProcessor extends ImmutableBaseProcessor {
 
     @Override
-    public Set<String> getSupportedOptions() {
-        return Set.of();
+    protected LiteProcessor initLiteProcessor(ProcessingEnvironment processingEnv) {
+        ProcessorComponent processorComponent = ProcessorComponent.of(processingEnv);
+        return processorComponent.liteProcessor();
     }
 
-    @Override
-    public Set<String> getSupportedAnnotationTypes() {
-        return Set.of(Immutable.class.getCanonicalName());
-    }
+    @Component(modules = ProcessorModule.class)
+    @ProcessorScope
+    interface ProcessorComponent {
 
-    @Override
-    public SourceVersion getSupportedSourceVersion() {
-        return SourceVersion.latestSupported();
-    }
+        static ProcessorComponent of(ProcessingEnvironment processingEnv) {
+            return DaggerImmutableProcessor_ProcessorComponent.factory().create(processingEnv);
+        }
 
-    @Override
-    public void init(ProcessingEnvironment processingEnv) {
-        // TODO: Implement me.
-    }
+        ImmutableLiteProcessor liteProcessor();
 
-    @Override
-    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        // TODO: Implement me.
-        return false;
-    }
+        @Component.Factory
+        interface Factory {
 
-    @Override
-    public Iterable<? extends Completion> getCompletions(
-            Element element, AnnotationMirror annotationMirror, ExecutableElement executableElement, String s) {
-        return Set.of();
+            ProcessorComponent create(@BindsInstance ProcessingEnvironment processingEnv);
+        }
     }
 }
