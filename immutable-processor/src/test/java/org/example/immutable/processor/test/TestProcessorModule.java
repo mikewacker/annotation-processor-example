@@ -14,6 +14,9 @@ import org.example.immutable.processor.base.LiteProcessor;
 import org.example.immutable.processor.base.ProcessorScope;
 import org.example.immutable.processor.generator.ImmutableGeneratorTest;
 import org.example.immutable.processor.modeler.ElementNavigatorTest;
+import org.example.immutable.processor.modeler.ImmutableImplsTest;
+import org.example.immutable.processor.modeler.ImmutableTypesTest;
+import org.example.immutable.processor.modeler.TopLevelTypesTest;
 
 /**
  * Provides all test implementations of {@link LiteProcessor}
@@ -69,4 +72,22 @@ public interface TestProcessorModule {
     @IntoMap
     @LiteProcessorClassKey(ElementNavigatorTest.TestLiteProcessor.class)
     LiteProcessor bindElementNavigatorTestLiteProcessor(ElementNavigatorTest.TestLiteProcessor liteProcessor);
+
+    @Binds
+    @ProcessorScope
+    @IntoMap
+    @LiteProcessorClassKey(ImmutableImplsTest.TestLiteProcessor.class)
+    LiteProcessor bindImmutableImplsTestLiteProcessor(ImmutableImplsTest.TestLiteProcessor liteProcessor);
+
+    @Binds
+    @ProcessorScope
+    @IntoMap
+    @LiteProcessorClassKey(ImmutableTypesTest.TestLiteProcessor.class)
+    LiteProcessor bindImmutableTypesTestLiteProcessor(ImmutableTypesTest.TestLiteProcessor liteProcessor);
+
+    @Binds
+    @ProcessorScope
+    @IntoMap
+    @LiteProcessorClassKey(TopLevelTypesTest.TestLiteProcessor.class)
+    LiteProcessor bindTopLevelTypesTestLiteProcessor(TopLevelTypesTest.TestLiteProcessor liteProcessor);
 }
