@@ -21,12 +21,28 @@ public final class NamedTypeTest {
     }
 
     @Test
-    public void concat() {
+    public void concat_Types() {
         NamedType type1 = NamedType.of("Map");
         NamedType type2 = NamedType.of("<%s, %s>", TopLevelType.of(String.class), TopLevelType.of(Integer.class));
         NamedType type = NamedType.concat(type1, type2);
         assertThat(type.nameFormat()).isEqualTo("Map<%s, %s>");
         assertThat(type.args()).containsExactly(TopLevelType.of(String.class), TopLevelType.of(Integer.class));
+    }
+
+    @Test
+    public void concat_TypeAndSuffix() {
+        NamedType originalType = NamedType.of(TopLevelType.of(String.class));
+        NamedType type = NamedType.concat(originalType, "[]");
+        assertThat(type.nameFormat()).isEqualTo("%s[]");
+        assertThat(type.args()).containsExactly(TopLevelType.of(String.class));
+    }
+
+    @Test
+    public void concat_TypeAndPrefix() {
+        NamedType originalType = NamedType.of(TopLevelType.of(Runnable.class));
+        NamedType type = NamedType.concat("? extends ", originalType);
+        assertThat(type.nameFormat()).isEqualTo("? extends %s");
+        assertThat(type.args()).containsExactly(TopLevelType.of(Runnable.class));
     }
 
     @Test

@@ -136,8 +136,7 @@ final class ImmutableTypes {
 
         // Append type variables to the raw type.
         String typeVars = getTypeVars(typeParamElements).stream().collect(Collectors.joining(", ", "<", ">"));
-        String nameFormat = String.format("%s%s", rawInterfaceType.nameFormat(), typeVars);
-        return NamedType.of(nameFormat, rawInterfaceType.args());
+        return NamedType.concat(rawInterfaceType, typeVars);
     }
 
     /** Creates the implementation type from the raw implementation type and the type parameters. */
