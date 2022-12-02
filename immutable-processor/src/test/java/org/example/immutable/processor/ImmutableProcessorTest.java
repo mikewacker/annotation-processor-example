@@ -22,16 +22,16 @@ public final class ImmutableProcessorTest {
     }
 
     @Test
-    public void compileWithoutVerifyingSource_Rectangle() {
-        compileWithoutVerifyingSource("test/Rectangle.java");
+    public void unsupported_Rectangle() {
+        error("test/Rectangle.java");
     }
 
     @Test
-    public void compileWithoutVerifyingSource_ColoredRectangle() {
-        compileWithoutVerifyingSource("test/ColoredRectangle.java");
+    public void unsupported_ColoredRectangle() {
+        error("test/ColoredRectangle.java");
     }
 
-    private void compileWithoutVerifyingSource(String sourcePath) {
-        TestCompiler.create().compile(sourcePath);
+    private void error(String sourcePath) {
+        TestCompiler.create().expectingCompilationFailure().compile(sourcePath);
     }
 }

@@ -22,11 +22,14 @@ import org.example.immutable.processor.base.ProcessorScope;
 /**
  * Compiles sources with either {@link ImmutableProcessor} or a custom annotation processor.
  *
- * <p>It checks that the sources compile both without and with the annotation processor.</p>
+ * <p>By default, it checks that the sources compile both without and with the annotation processor.
+ * However, it can be configured to expect a compilation failure for either.</p>
  */
-public class TestCompiler {
+public final class TestCompiler {
 
     private Processor processor;
+    private boolean compiles = true;
+    private boolean compilesWithoutProcessor = true;
 
     /** Creates a compiler with {@link ImmutableProcessor}. */
     public static TestCompiler create() {
@@ -42,6 +45,18 @@ public class TestCompiler {
 
     private TestCompiler(Processor processor) {
         this.processor = processor;
+    }
+
+    /** Configures the compiler to expect a compilation failure with the annotation processor. */
+    public TestCompiler expectingCompilationFailure() {
+        compiles = false;
+        return this;
+    }
+
+    /** Configures the compiler to expect a compilation failure without the annotation processor. */
+    public TestCompiler expectingCompilationFailureWithoutProcessor() {
+        compilesWithoutProcessor = false;
+        return this;
     }
 
     /** Compiles the sources, verifying the status of the compilation. */
@@ -65,14 +80,22 @@ public class TestCompiler {
                 // Suppress this warning: "Implicitly compiled files were not subject to annotation processing."
                 .withOptions("-implicit:none")
                 .compile(sourceFiles);
-        assertThat(compilation).succeededWithoutWarnings();
+        if (compiles) {
+            assertThat(compilation).succeededWithoutWarnings();
+        } else {
+            assertThat(compilation).failed();
+        }
         return compilation;
     }
 
     /** Compiles the sources without the annotation processor, verifying the status of the compilation. */
     private void compileWithoutProcessor(Iterable<JavaFileObject> sourceFiles) {
         Compilation compilation = Compiler.javac().compile(sourceFiles);
-        assertThat(compilation).succeededWithoutWarnings();
+        if (compilesWithoutProcessor) {
+            assertThat(compilation).succeededWithoutWarnings();
+        } else {
+            assertThat(compilation).failed();
+        }
     }
 
     /**

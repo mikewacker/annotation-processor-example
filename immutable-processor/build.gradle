@@ -16,7 +16,9 @@ dependencies {
     implementation 'javax.inject:javax.inject:1'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.1'
 
+    testCompileOnly 'org.immutables:value-annotations:2.9.2'
     testAnnotationProcessor 'com.google.dagger:dagger-compiler:2.44.2'
+    testAnnotationProcessor 'org.immutables:value-processor:2.9.2'
 
     testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-guava:2.14.1'
     testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.14.1'
