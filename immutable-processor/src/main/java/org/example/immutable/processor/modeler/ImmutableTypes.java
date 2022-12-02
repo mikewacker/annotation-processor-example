@@ -9,6 +9,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
@@ -22,6 +23,9 @@ import org.example.immutable.processor.model.TopLevelType;
 /** Creates {@link ImmutableType}'s from {@link TypeElement}'s. */
 @ProcessorScope
 final class ImmutableTypes {
+
+    private static final NamedType BOUND_ERROR_TYPE = NamedType.of("?");
+    private static final String OBJECT_CANONICAL_NAME = Object.class.getCanonicalName();
 
     private final NamedTypes typeFactory;
     private final Errors errorReporter;
@@ -50,10 +54,10 @@ final class ImmutableTypes {
             Set<String> packageTypes = createPackageTypes(typeElement);
 
             // Create and validate the types. Generics are not yet supported.
-            checkDoesNotHaveTypeParameters(typeElement);
-            List<String> typeVars = List.of();
-            NamedType interfaceType = rawInterfaceType;
-            NamedType implType = NamedType.of(rawImplType);
+            List<? extends TypeParameterElement> typeParamElements = typeElement.getTypeParameters();
+            List<String> typeVars = getTypeVars(typeParamElements);
+            NamedType interfaceType = createInterfaceType(rawInterfaceType, typeParamElements);
+            NamedType implType = createImplType(rawImplType, typeParamElements);
 
             // Create the immutable type.
             ImmutableType type = ImmutableType.of(rawImplType, packageTypes, typeVars, implType, interfaceType);
@@ -114,6 +118,64 @@ final class ImmutableTypes {
                 .collect(Collectors.toSet());
     }
 
+    /** Gets a list of all type variables. */
+    private List<String> getTypeVars(List<? extends TypeParameterElement> typeParamElements) {
+        return typeParamElements.stream()
+                .map(Element::getSimpleName)
+                .map(Name::toString)
+                .toList();
+    }
+
+    /** Creates the interface type from the raw interface type and the type parameters. */
+    private NamedType createInterfaceType(
+            NamedType rawInterfaceType, List<? extends TypeParameterElement> typeParamElements) {
+        // Return the raw type for non-generic types.
+        if (typeParamElements.isEmpty()) {
+            return rawInterfaceType;
+        }
+
+        // Append type variables to the raw type.
+        String typeVars = getTypeVars(typeParamElements).stream().collect(Collectors.joining(", ", "<", ">"));
+        String nameFormat = String.format("%s%s", rawInterfaceType.nameFormat(), typeVars);
+        return NamedType.of(nameFormat, rawInterfaceType.args());
+    }
+
+    /** Creates the implementation type from the raw implementation type and the type parameters. */
+    private NamedType createImplType(
+            TopLevelType rawImplTopLevelType, List<? extends TypeParameterElement> typeParamElements) {
+        NamedType rawImplType = NamedType.of(rawImplTopLevelType);
+
+        // Return the raw type for non-generic types.
+        if (typeParamElements.isEmpty()) {
+            return rawImplType;
+        }
+
+        // Append type parameters to the raw type.
+        List<NamedType> typeParamTypes =
+                typeParamElements.stream().map(this::createTypeParamType).toList();
+        NamedType typeParamsType = NamedType.join(typeParamTypes, ", ", "<", ">");
+        return NamedType.concat(rawImplType, typeParamsType);
+    }
+
+    /** Creates a type for the type parameter. */
+    private NamedType createTypeParamType(TypeParameterElement typeParamElement) {
+        String typeVar = typeParamElement.getSimpleName().toString();
+        List<? extends TypeMirror> bounds = typeParamElement.getBounds();
+
+        // Return the type variable for type parameters without bounds.
+        if ((bounds.size() == 1) && bounds.get(0).toString().equals(OBJECT_CANONICAL_NAME)) {
+            return NamedType.of(typeVar);
+        }
+
+        // Create the bounded type.
+        List<NamedType> boundTypes = bounds.stream()
+                .map(bound -> typeFactory.create(bound, typeParamElement))
+                .map(maybeType -> maybeType.orElse(BOUND_ERROR_TYPE))
+                .toList();
+        String prefix = String.format("%s extends ", typeVar);
+        return NamedType.join(boundTypes, " & ", prefix, "");
+    }
+
     private boolean checkIsInterface(TypeElement typeElement) {
         return !typeElement.getKind().isInterface()
                 ? errorReporter.error("type must be an interface", typeElement)
@@ -152,11 +214,5 @@ final class ImmutableTypes {
 
         String message = String.format("flat interface type already exists as @Immutable type: %s", qualifiedName);
         errorReporter.error(message, sourceElement);
-    }
-
-    private boolean checkDoesNotHaveTypeParameters(TypeElement typeElement) {
-        return !typeElement.getTypeParameters().isEmpty()
-                ? errorReporter.error("generic interfaces are not supported", typeElement)
-                : true;
     }
 }

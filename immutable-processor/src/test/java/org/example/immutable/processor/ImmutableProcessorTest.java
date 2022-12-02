@@ -8,8 +8,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Stream;
 import org.example.immutable.processor.test.TestCompiler;
 import org.junit.jupiter.api.Test;
@@ -34,6 +32,14 @@ public final class ImmutableProcessorTest {
                 "generated/test/ImmutableColoredRectangle.java");
     }
 
+    @Test
+    public void compile_QualifiedTypes() {
+        compile(
+                "test/source/QualifiedTypes.java",
+                "test.source.ImmutableQualifiedTypes",
+                "generated/test/source/ImmutableQualifiedTypes.java");
+    }
+
     private void compile(String sourcePath, String generatedQualifiedName, String expectedGeneratedSourcePath) {
         Compilation compilation = TestCompiler.create().compile(sourcePath);
         assertThat(compilation)
@@ -43,11 +49,7 @@ public final class ImmutableProcessorTest {
 
     @Test
     public void compileWithoutVerifyingSource_MethodSources() throws IOException {
-        // This is temporary until TypeVariable.java is fully supported.
-        List<String> sourcePaths = new ArrayList<>();
-        getSourcePaths("test/method").forEach(sourcePaths::add);
-        sourcePaths.remove("test/method/TypeVariable.java");
-        compileWithoutVerifyingSource(sourcePaths);
+        compileWithoutVerifyingSource(getSourcePaths("test/method"));
     }
 
     @Test

@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.testing.compile.Compilation;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import javax.annotation.processing.Filer;
 import javax.inject.Inject;
 import javax.lang.model.element.TypeElement;
@@ -40,6 +41,33 @@ public final class ImmutableTypesTest {
     }
 
     @Test
+    public void create_InterfaceGeneric() throws Exception {
+        TopLevelType rawImplType = TopLevelType.of("test.type", "ImmutableInterfaceGeneric");
+        TopLevelType rawInterfaceType = TopLevelType.of("test.type", "InterfaceGeneric");
+        List<String> typeVars = List.of("T", "U");
+        NamedType implType = NamedType.of("%s<T, U>", rawImplType);
+        NamedType interfaceType = NamedType.of("%s<T, U>", rawInterfaceType);
+        ImmutableType expectedType = ImmutableType.of(rawImplType, Set.of(), typeVars, implType, interfaceType);
+        create("test/type/InterfaceGeneric.java", expectedType);
+    }
+
+    @Test
+    public void create_InterfaceGenericBounds() throws Exception {
+        TopLevelType rawImplType = TopLevelType.of("test.type", "ImmutableInterfaceGenericBounds");
+        TopLevelType rawInterfaceType = TopLevelType.of("test.type", "InterfaceGenericBounds");
+        List<String> typeVars = List.of("T");
+        NamedType implType = NamedType.of(
+                "%s<T extends %s & %s<%s>>",
+                rawImplType,
+                TopLevelType.of(Runnable.class),
+                TopLevelType.of(Callable.class),
+                TopLevelType.of(Void.class));
+        NamedType interfaceType = NamedType.of("%s<T>", rawInterfaceType);
+        ImmutableType expectedType = ImmutableType.of(rawImplType, Set.of(), typeVars, implType, interfaceType);
+        create("test/type/InterfaceGenericBounds.java", expectedType);
+    }
+
+    @Test
     public void create_Nested() throws Exception {
         TopLevelType rawImplType = TopLevelType.of("test.type", "ImmutableInterfaceNested_Inner");
         TopLevelType topLevelInterfaceType = TopLevelType.of("test.type", "InterfaceNested");
@@ -61,20 +89,6 @@ public final class ImmutableTypesTest {
         ImmutableType type =
                 TestResources.loadObjectFromGeneratedResource(compilation, resourcePath, new TypeReference<>() {});
         assertThat(normalizeType(type)).isEqualTo(normalizeType(expectedType));
-    }
-
-    @Test
-    public void unsupported_InterfaceGeneric() {
-        error(
-                "test/type/unsupported/InterfaceGeneric.java",
-                CompilationError.of(6, "[@Immutable] generic interfaces are not supported"));
-    }
-
-    @Test
-    public void unsupported_InterfaceGenericBounds() {
-        error(
-                "test/type/unsupported/InterfaceGenericBounds.java",
-                CompilationError.of(8, "[@Immutable] generic interfaces are not supported"));
     }
 
     @Test
