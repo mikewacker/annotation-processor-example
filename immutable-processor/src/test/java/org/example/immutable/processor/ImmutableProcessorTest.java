@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Stream;
 import org.example.immutable.processor.test.TestCompiler;
 import org.junit.jupiter.api.Test;
@@ -19,11 +21,25 @@ public final class ImmutableProcessorTest {
         compile("test/Empty.java", "test.ImmutableEmpty", "generated/test/ImmutableEmpty.java");
     }
 
+    @Test
+    public void compile_Rectangle() {
+        compile("test/Rectangle.java", "test.ImmutableRectangle", "generated/test/ImmutableRectangle.java");
+    }
+
     private void compile(String sourcePath, String generatedQualifiedName, String expectedGeneratedSourcePath) {
         Compilation compilation = TestCompiler.create().compile(sourcePath);
         assertThat(compilation)
                 .generatedSourceFile(generatedQualifiedName)
                 .hasSourceEquivalentTo(JavaFileObjects.forResource(expectedGeneratedSourcePath));
+    }
+
+    @Test
+    public void compileWithoutVerifyingSource_MethodSources() throws IOException {
+        // This is temporary until TypeVariable.java is fully supported.
+        List<String> sourcePaths = new ArrayList<>();
+        getSourcePaths("test/method").forEach(sourcePaths::add);
+        sourcePaths.remove("test/method/TypeVariable.java");
+        compileWithoutVerifyingSource(sourcePaths);
     }
 
     @Test
@@ -33,11 +49,6 @@ public final class ImmutableProcessorTest {
 
     private void compileWithoutVerifyingSource(Iterable<String> sourcePaths) {
         TestCompiler.create().compile(sourcePaths);
-    }
-
-    @Test
-    public void unsupported_Rectangle() {
-        error("test/Rectangle.java");
     }
 
     @Test

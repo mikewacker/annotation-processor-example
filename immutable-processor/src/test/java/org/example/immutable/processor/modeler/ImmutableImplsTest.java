@@ -24,6 +24,11 @@ public final class ImmutableImplsTest {
         create("test/Empty.java", TestImmutableImpls.empty());
     }
 
+    @Test
+    public void createRectangle() throws Exception {
+        create("test/Rectangle.java", TestImmutableImpls.rectangle());
+    }
+
     private void create(String sourcePath, ImmutableImpl expectedImpl) throws Exception {
         Compilation compilation = TestCompiler.create(TestLiteProcessor.class).compile(sourcePath);
         ImmutableImpl impl = TestResources.loadObjectForSource(compilation, sourcePath, new TypeReference<>() {});
@@ -31,19 +36,24 @@ public final class ImmutableImplsTest {
     }
 
     @Test
-    public void unsupported_Rectangle() {
-        error("test/Rectangle.java", CompilationError.of(6, "[@Immutable] methods are not supported"));
-    }
-
-    @Test
     public void unsupported_ColoredRectangle() {
-        error("test/ColoredRectangle.java", CompilationError.of(8, "[@Immutable] methods are not supported"));
+        error(
+                "test/ColoredRectangle.java",
+                CompilationError.of(14, "[@Immutable] declared types are not supported"),
+                CompilationError.of(16, "[@Immutable] declared types are not supported"),
+                CompilationError.of(18, "[@Immutable] declared types are not supported"));
     }
 
     @Test
     public void error_ImmutableType() {
-        CompilationError expectedError = CompilationError.of(6, "[@Immutable] type must be an interface");
-        error("test/type/error/Class.java", expectedError);
+        error("test/type/error/Class.java", CompilationError.of(6, "[@Immutable] type must be an interface"));
+    }
+
+    @Test
+    public void error_ImmutableMember() {
+        error(
+                "test/method/error/MethodWithParams.java",
+                CompilationError.of(8, "[@Immutable] method must not have parameters"));
     }
 
     private void error(String sourcePath, CompilationError... expectedErrors) {

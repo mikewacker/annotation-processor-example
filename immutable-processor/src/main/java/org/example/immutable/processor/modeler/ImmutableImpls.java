@@ -8,6 +8,7 @@ import javax.lang.model.element.TypeElement;
 import org.example.immutable.processor.base.ProcessorScope;
 import org.example.immutable.processor.error.Errors;
 import org.example.immutable.processor.model.ImmutableImpl;
+import org.example.immutable.processor.model.ImmutableMember;
 import org.example.immutable.processor.model.ImmutableType;
 import org.example.immutable.processor.model.NamedType;
 import org.example.immutable.processor.model.TopLevelType;
@@ -18,14 +19,21 @@ public final class ImmutableImpls {
 
     private static final ImmutableType ERROR_TYPE =
             ImmutableType.of(TopLevelType.of("?", "?"), Set.of(), List.of(), NamedType.of("?"), NamedType.of("?"));
+    private static final ImmutableMember ERROR_MEMBER = ImmutableMember.of("?", NamedType.of("?"));
 
     private final ImmutableTypes typeFactory;
+    private final ImmutableMembers memberFactory;
     private final ElementNavigator navigator;
     private final Errors errorReporter;
 
     @Inject
-    ImmutableImpls(ImmutableTypes typeFactory, ElementNavigator navigator, Errors errorReporter) {
+    ImmutableImpls(
+            ImmutableTypes typeFactory,
+            ImmutableMembers memberFactory,
+            ElementNavigator navigator,
+            Errors errorReporter) {
         this.typeFactory = typeFactory;
+        this.memberFactory = memberFactory;
         this.navigator = navigator;
         this.errorReporter = errorReporter;
     }
@@ -37,17 +45,15 @@ public final class ImmutableImpls {
             ImmutableType type = typeFactory.create(typeElement).orElse(ERROR_TYPE);
 
             // Create and validate the methods.
-            checkDoesNotHaveMethods(typeElement);
+            List<ImmutableMember> members = navigator
+                    .getMethodsToImplement(typeElement)
+                    .map(memberFactory::create)
+                    .map(maybeMember -> maybeMember.orElse(ERROR_MEMBER))
+                    .toList();
 
             // Create the implementation.
-            ImmutableImpl impl = ImmutableImpl.of(type, List.of());
+            ImmutableImpl impl = ImmutableImpl.of(type, members);
             return errorTracker.checkNoErrors(impl);
         }
-    }
-
-    private boolean checkDoesNotHaveMethods(TypeElement typeElement) {
-        return navigator.getMethodsToImplement(typeElement).findAny().isPresent()
-                ? errorReporter.error("methods are not supported", typeElement)
-                : true;
     }
 }
