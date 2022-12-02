@@ -15,6 +15,7 @@ import org.example.immutable.processor.base.ProcessorScope;
 import org.example.immutable.processor.generator.ImmutableGeneratorTest;
 import org.example.immutable.processor.modeler.ElementNavigatorTest;
 import org.example.immutable.processor.modeler.ImmutableImplsTest;
+import org.example.immutable.processor.modeler.ImmutableMembersTest;
 import org.example.immutable.processor.modeler.ImmutableTypesTest;
 import org.example.immutable.processor.modeler.NamedTypesTest;
 import org.example.immutable.processor.modeler.TopLevelTypesTest;
@@ -80,6 +81,12 @@ public interface TestProcessorModule {
     @IntoMap
     @LiteProcessorClassKey(ImmutableImplsTest.TestLiteProcessor.class)
     LiteProcessor bindImmutableImplsTestLiteProcessor(ImmutableImplsTest.TestLiteProcessor liteProcessor);
+
+    @Binds
+    @ProcessorScope
+    @IntoMap
+    @LiteProcessorClassKey(ImmutableMembersTest.TestLiteProcessor.class)
+    LiteProcessor bindImmutableMembersTestLiteProcessor(ImmutableMembersTest.TestLiteProcessor liteProcessor);
 
     @Binds
     @ProcessorScope
