@@ -43,6 +43,38 @@ public final class NamedTypesTest {
     }
 
     @Test
+    public void create_TypeDeclaredNested() throws Exception {
+        NamedType expectedType = NamedType.of("%s.UncaughtExceptionHandler", TopLevelType.of(Thread.class));
+        create("test/method/TypeDeclaredNested.java", expectedType);
+    }
+
+    @Test
+    public void create_TypeDeclaredNestedGenericInstance() throws Exception {
+        NamedType expectedType = NamedType.of(
+                "%s<%s>.Inner<%s>",
+                TopLevelType.of("test.method", "Outer"), TopLevelType.of(String.class), TopLevelType.of(String.class));
+        create("test/method/TypeDeclaredNestedGenericInstance.java", expectedType);
+    }
+
+    @Test
+    public void create_TypeDeclaredNestedGenericStatic() throws Exception {
+        NamedType expectedType = NamedType.of(
+                "%s.Entry<%s, %s>",
+                TopLevelType.of(Map.class), TopLevelType.of(String.class), TopLevelType.of(String.class));
+        create("test/method/TypeDeclaredNestedGenericStatic.java", expectedType);
+    }
+
+    @Test
+    public void create_TypeDeclaredPathological() throws Exception {
+        NamedType expectedType = NamedType.of(
+                "%s<%s>.Inner<%s>",
+                TopLevelType.of("test.method", "OuterBase"),
+                TopLevelType.of(String.class),
+                TopLevelType.of(String.class));
+        create("test/method/TypeDeclaredPathological.java", expectedType);
+    }
+
+    @Test
     public void create_TypePrimitive() throws Exception {
         NamedType expectedType = NamedType.of("int");
         create("test/method/TypePrimitive.java", expectedType);
@@ -78,34 +110,6 @@ public final class NamedTypesTest {
         Compilation compilation = TestCompiler.create(TestLiteProcessor.class).compile(sourcePath);
         NamedType type = TestResources.loadObjectForSource(compilation, sourcePath, new TypeReference<>() {});
         assertThat(type).isEqualTo(expectedType);
-    }
-
-    @Test
-    public void unsupported_TypeDeclaredNested() {
-        error(
-                "test/method/unsupported/TypeDeclaredNested.java",
-                CompilationError.of(8, "[@Immutable] nested types are not supported"));
-    }
-
-    @Test
-    public void unsupported_TypeDeclaredNestedGenericInstance() {
-        error(
-                "test/method/unsupported/TypeDeclaredNestedGenericInstance.java",
-                CompilationError.of(8, "[@Immutable] nested types are not supported"));
-    }
-
-    @Test
-    public void unsupported_TypeDeclaredNestedGenericStatic() {
-        error(
-                "test/method/unsupported/TypeDeclaredNestedGenericStatic.java",
-                CompilationError.of(9, "[@Immutable] nested types are not supported"));
-    }
-
-    @Test
-    public void unsupported_TypeDeclaredPathological() {
-        error(
-                "test/method/unsupported/TypeDeclaredPathological.java",
-                CompilationError.of(8, "[@Immutable] nested types are not supported"));
     }
 
     @Test

@@ -1,10 +1,14 @@
 package org.example.immutable.processor.modeler;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
@@ -14,6 +18,7 @@ import javax.lang.model.type.IntersectionType;
 import javax.lang.model.type.NoType;
 import javax.lang.model.type.NullType;
 import javax.lang.model.type.PrimitiveType;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
 import javax.lang.model.type.TypeVisitor;
@@ -164,14 +169,53 @@ final class NamedTypes {
 
         /** Visits the raw type for a declared type. */
         private NamedType visitDeclaredRaw(DeclaredType declaredType) {
-            TypeElement typeElement = (TypeElement) declaredType.asElement();
-            if (!checkIsTopLevelType(typeElement)) {
-                return ERROR_TYPE;
+            // The base case is top-level type or a nested static type.
+            if (declaredType.getEnclosingType().getKind() == TypeKind.NONE) {
+                return visitDeclaredRawStatic(declaredType);
             }
 
-            TopLevelType topLevelType =
-                    topLevelTypeFactory.create(typeElement, sourceElement).orElse(ERROR_TOP_LEVEL_TYPE);
-            return NamedType.of(topLevelType);
+            // Visit the outer type.
+            DeclaredType outerDeclaredType = (DeclaredType) declaredType.getEnclosingType();
+            NamedType outerTypeModel = accept(outerDeclaredType);
+
+            // Get the names of the inner types.
+            TypeElement typeElement = (TypeElement) declaredType.asElement();
+            TypeElement outerTypeElement = (TypeElement) outerDeclaredType.asElement();
+            String qualifiedName = typeElement.getQualifiedName().toString();
+            String outerQualifiedName = outerTypeElement.getQualifiedName().toString();
+            String innerNameSuffix = qualifiedName.substring(outerQualifiedName.length());
+
+            // Create the type model.
+            String nameFormat = String.format("%s%s", outerTypeModel.nameFormat(), innerNameSuffix);
+            return NamedType.of(nameFormat, outerTypeModel.args());
+        }
+
+        /** Visits the raw type for a top-level type or a nested static type. */
+        private NamedType visitDeclaredRawStatic(DeclaredType declaredType) {
+            // Get all the type elements.
+            Element currentElement = declaredType.asElement();
+            Deque<TypeElement> nestedTypeElements = new ArrayDeque<>();
+            for (;
+                    currentElement.getEnclosingElement().getKind() != ElementKind.PACKAGE;
+                    currentElement = currentElement.getEnclosingElement()) {
+                nestedTypeElements.addFirst((TypeElement) currentElement);
+            }
+            TypeElement topLevelTypeElement = (TypeElement) currentElement;
+
+            // Create the type model for top-level types.
+            TopLevelType arg = topLevelTypeFactory
+                    .create(topLevelTypeElement, sourceElement)
+                    .orElse(ERROR_TOP_LEVEL_TYPE);
+            if (nestedTypeElements.isEmpty()) {
+                return NamedType.of(arg);
+            }
+
+            // Create the type model for nested types.
+            String nameFormat = nestedTypeElements.stream()
+                    .map(Element::getSimpleName)
+                    .map(Name::toString)
+                    .collect(Collectors.joining(".", "%s.", ""));
+            return NamedType.of(nameFormat, arg);
         }
 
         /** Visits a bounded wildcard. */
@@ -179,12 +223,6 @@ final class NamedTypes {
             NamedType boundModel = accept(bound);
             String nameFormat = String.format("? %s %s", boundKind, boundModel.nameFormat());
             return NamedType.of(nameFormat, boundModel.args());
-        }
-
-        private boolean checkIsTopLevelType(TypeElement typeElement) {
-            return (typeElement.getEnclosingElement().getKind() != ElementKind.PACKAGE)
-                    ? errorReporter.error("nested types are not supported", sourceElement)
-                    : true;
         }
 
         private NamedType accept(TypeMirror type) {
