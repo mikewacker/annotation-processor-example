@@ -39,9 +39,27 @@ public final class ImmutableTypesTest {
         create("test/type/Interface.java", expectedType);
     }
 
+    @Test
+    public void create_Nested() throws Exception {
+        TopLevelType rawImplType = TopLevelType.of("test.type", "ImmutableInterfaceNested_Inner");
+        TopLevelType topLevelInterfaceType = TopLevelType.of("test.type", "InterfaceNested");
+        List<String> typeVars = List.of();
+        NamedType implType = NamedType.of(rawImplType);
+        NamedType interfaceType = NamedType.of("%s.Inner", topLevelInterfaceType);
+        ImmutableType expectedType = ImmutableType.of(rawImplType, Set.of(), typeVars, implType, interfaceType);
+        create("test/type/InterfaceNested.java", "test/type/InterfaceNested_Inner.json", expectedType);
+    }
+
     private void create(String sourcePath, ImmutableType expectedType) throws Exception {
         Compilation compilation = TestCompiler.create(TestLiteProcessor.class).compile(sourcePath);
         ImmutableType type = TestResources.loadObjectForSource(compilation, sourcePath, new TypeReference<>() {});
+        assertThat(normalizeType(type)).isEqualTo(normalizeType(expectedType));
+    }
+
+    private void create(String sourcePath, String resourcePath, ImmutableType expectedType) throws Exception {
+        Compilation compilation = TestCompiler.create(TestLiteProcessor.class).compile(sourcePath);
+        ImmutableType type =
+                TestResources.loadObjectFromGeneratedResource(compilation, resourcePath, new TypeReference<>() {});
         assertThat(normalizeType(type)).isEqualTo(normalizeType(expectedType));
     }
 
@@ -60,13 +78,6 @@ public final class ImmutableTypesTest {
     }
 
     @Test
-    public void unsupported_Nested() {
-        error(
-                "test/type/unsupported/InterfaceNested.java",
-                CompilationError.of(8, "[@Immutable] nested interfaces are not supported"));
-    }
-
-    @Test
     public void error_Class() {
         error("test/type/error/Class.java", CompilationError.of(6, "[@Immutable] type must be an interface"));
     }
@@ -75,7 +86,9 @@ public final class ImmutableTypesTest {
     public void error_InterfaceNestedWithImpl() {
         error(
                 "test/type/error/InterfaceNestedWithImpl.java",
-                CompilationError.of(8, "[@Immutable] nested interfaces are not supported"));
+                CompilationError.of(
+                        8,
+                        "[@Immutable] flat interface type already exists as @Immutable type: test.type.error.InterfaceNestedWithImpl_Inner"));
     }
 
     @Test

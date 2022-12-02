@@ -6,11 +6,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
+import org.example.immutable.Immutable;
 import org.example.immutable.processor.base.ProcessorScope;
 import org.example.immutable.processor.error.Errors;
 import org.example.immutable.processor.model.ImmutableType;
@@ -21,26 +23,28 @@ import org.example.immutable.processor.model.TopLevelType;
 @ProcessorScope
 final class ImmutableTypes {
 
-    private final TopLevelTypes typeFactory;
+    private final NamedTypes typeFactory;
     private final Errors errorReporter;
     private final Elements elementUtils;
+    private final Types typeUtils;
 
     @Inject
-    ImmutableTypes(TopLevelTypes typeFactory, Errors errorReporter, Elements elementUtils) {
+    ImmutableTypes(NamedTypes typeFactory, Errors errorReporter, Elements elementUtils, Types typeUtils) {
         this.typeFactory = typeFactory;
         this.errorReporter = errorReporter;
         this.elementUtils = elementUtils;
+        this.typeUtils = typeUtils;
     }
 
     /** Creates an {@link ImmutableType}, or empty if validation fails. */
     public Optional<ImmutableType> create(TypeElement typeElement) {
         // Create and validate the raw types.
         try (Errors.Tracker errorTracker = errorReporter.createErrorTracker()) {
-            Optional<TopLevelType> maybeRawInterfaceType = createRawInterfaceType(typeElement);
+            Optional<NamedType> maybeRawInterfaceType = createRawInterfaceType(typeElement);
             if (maybeRawInterfaceType.isEmpty()) {
                 return Optional.empty();
             }
-            TopLevelType rawInterfaceType = maybeRawInterfaceType.get();
+            NamedType rawInterfaceType = maybeRawInterfaceType.get();
 
             TopLevelType rawImplType = createRawImplType(rawInterfaceType, typeElement);
             Set<String> packageTypes = createPackageTypes(typeElement);
@@ -48,7 +52,7 @@ final class ImmutableTypes {
             // Create and validate the types. Generics are not yet supported.
             checkDoesNotHaveTypeParameters(typeElement);
             List<String> typeVars = List.of();
-            NamedType interfaceType = NamedType.of(rawInterfaceType);
+            NamedType interfaceType = rawInterfaceType;
             NamedType implType = NamedType.of(rawImplType);
 
             // Create the immutable type.
@@ -58,18 +62,45 @@ final class ImmutableTypes {
     }
 
     /** Creates a raw interface type from the type element. */
-    private Optional<TopLevelType> createRawInterfaceType(TypeElement typeElement) {
-        if (!checkIsInterface(typeElement) || !checkIsTopLevelInterface(typeElement)) {
+    private Optional<NamedType> createRawInterfaceType(TypeElement typeElement) {
+        if (!checkIsInterface(typeElement)) {
             return Optional.empty();
         }
 
-        return typeFactory.create(typeElement, typeElement);
+        TypeMirror rawTypeMirror = typeUtils.erasure(typeElement.asType());
+        return typeFactory.create(rawTypeMirror, typeElement);
     }
 
     /** Creates a raw implementation type from the raw interface type. */
-    private TopLevelType createRawImplType(TopLevelType rawInterfaceType, TypeElement sourceElement) {
-        String simpleImplName = String.format("Immutable%s", rawInterfaceType.simpleName());
-        TopLevelType rawImplType = TopLevelType.of(rawInterfaceType.packageName(), simpleImplName);
+    private TopLevelType createRawImplType(NamedType rawInterfaceType, TypeElement sourceElement) {
+        TopLevelType rawFlatInterfaceType = createRawFlatInterfaceType(rawInterfaceType, sourceElement);
+        return createRawImplType(rawFlatInterfaceType, sourceElement);
+    }
+
+    /**
+     * Creates a raw flat interface type from the raw interface type.
+     *
+     * <p>Flattening replaces a nested type with a top-level type, replacing '.' with '_'.
+     * (E.g., replace "package.Outer.Inner" with "package.Outer_Inner".)</p>
+     */
+    private TopLevelType createRawFlatInterfaceType(NamedType rawInterfaceType, Element sourceElement) {
+        // Top-level types do not require flattening.
+        if (!rawInterfaceType.nameFormat().contains(".")) {
+            return rawInterfaceType.args().get(0);
+        }
+
+        // Normalize the nested interface type.
+        String packageName = rawInterfaceType.args().get(0).packageName();
+        String simpleFlatInterfaceName = rawInterfaceType.name().replace(".", "_");
+        TopLevelType rawFlatInterfaceType = TopLevelType.of(packageName, simpleFlatInterfaceName);
+        checkFlatInterfaceTypeDoesNotExistAsImmutable(rawFlatInterfaceType, sourceElement);
+        return rawFlatInterfaceType;
+    }
+
+    /** Creates the raw implementation type from the raw flat interface type. */
+    private TopLevelType createRawImplType(TopLevelType rawFlatInterfaceType, Element sourceElement) {
+        String simpleImplName = String.format("Immutable%s", rawFlatInterfaceType.simpleName());
+        TopLevelType rawImplType = TopLevelType.of(rawFlatInterfaceType.packageName(), simpleImplName);
         checkImplTypeDoesNotExist(rawImplType, sourceElement);
         return rawImplType;
     }
@@ -89,12 +120,6 @@ final class ImmutableTypes {
                 : true;
     }
 
-    private boolean checkIsTopLevelInterface(TypeElement typeElement) {
-        return (typeElement.getEnclosingElement().getKind() != ElementKind.PACKAGE)
-                ? errorReporter.error("nested interfaces are not supported", typeElement)
-                : true;
-    }
-
     /** Checks that the implementation type to be generated does not already exist. */
     private void checkImplTypeDoesNotExist(TopLevelType rawImplType, Element sourceElement) {
         String qualifiedName = rawImplType.qualifiedName();
@@ -103,6 +128,29 @@ final class ImmutableTypes {
         }
 
         String message = String.format("implementation type already exists: %s", qualifiedName);
+        errorReporter.error(message, sourceElement);
+    }
+
+    /**
+     * Checks that the flat interface type does not exist as a type annotated with {@link Immutable}.
+     *
+     * <p>If the flat interface type already exists and is annotated with {@link Immutable},
+     * then the interface type and the flat interface type would have the same implementation type.</p>
+     */
+    private void checkFlatInterfaceTypeDoesNotExistAsImmutable(
+            TopLevelType rawFlatInterfaceType, Element sourceElement) {
+        String qualifiedName = rawFlatInterfaceType.qualifiedName();
+        TypeElement flatTypeElement = elementUtils.getTypeElement(qualifiedName);
+        if (flatTypeElement == null) {
+            return;
+        }
+
+        Immutable immutable = flatTypeElement.getAnnotation(Immutable.class);
+        if (immutable == null) {
+            return;
+        }
+
+        String message = String.format("flat interface type already exists as @Immutable type: %s", qualifiedName);
         errorReporter.error(message, sourceElement);
     }
 

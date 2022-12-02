@@ -40,7 +40,7 @@ public final class TopLevelTypesTest {
     @Test
     public void preconditionFailure_IsNotTopLevelType() {
         error(
-                "test/type/unsupported/InterfaceNested.java",
+                "test/type/InterfaceNested.java",
                 CompilationError.of(8, "[@Immutable] precondition: type is not a top-level type"));
     }
 

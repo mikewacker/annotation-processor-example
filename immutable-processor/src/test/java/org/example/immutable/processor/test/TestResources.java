@@ -11,8 +11,14 @@ import com.google.testing.compile.Compilation;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.annotation.processing.Filer;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.Name;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.tools.FileObject;
@@ -62,6 +68,16 @@ public final class TestResources {
     public static <T> T loadObjectForSource(Compilation compilation, String sourcePath, TypeReference<T> type)
             throws Exception {
         String resourcePath = sourcePath.replace(".java", ".json");
+        return loadObjectFromGeneratedResource(compilation, resourcePath, type);
+    }
+
+    /**
+     * Loads an object from a generated resource file.
+     *
+     * <p>This method is used when the source path and resource path don't correspond (e.g., nested types).</p>
+     */
+    public static <T> T loadObjectFromGeneratedResource(
+            Compilation compilation, String resourcePath, TypeReference<T> type) throws Exception {
         FileObject resourceFile = getResourceFile(compilation, resourcePath);
         return loadObject(resourceFile, type);
     }
@@ -76,10 +92,20 @@ public final class TestResources {
 
     /** Creates a resource file for the type during annotation processing. */
     private static FileObject createResourceFile(Filer filer, TypeElement typeElement) throws IOException {
-        // This does not work for nested types.
-        PackageElement packageElement = (PackageElement) typeElement.getEnclosingElement();
+        // Get all the elements.
+        Element currentElement = typeElement;
+        Deque<Element> typeElements = new ArrayDeque<>();
+        for (; currentElement.getKind() != ElementKind.PACKAGE; currentElement = currentElement.getEnclosingElement()) {
+            typeElements.addFirst(currentElement);
+        }
+        PackageElement packageElement = (PackageElement) currentElement;
+
+        // Create the file.
         String packageName = packageElement.getQualifiedName().toString();
-        String simpleName = typeElement.getSimpleName().toString();
+        String simpleName = typeElements.stream()
+                .map(Element::getSimpleName)
+                .map(Name::toString)
+                .collect(Collectors.joining("_"));
         String fileName = String.format("%s.json", simpleName);
         return filer.createResource(StandardLocation.SOURCE_OUTPUT, packageName, fileName, typeElement);
     }
