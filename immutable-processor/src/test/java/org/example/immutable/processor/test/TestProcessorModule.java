@@ -16,6 +16,7 @@ import org.example.immutable.processor.generator.ImmutableGeneratorTest;
 import org.example.immutable.processor.modeler.ElementNavigatorTest;
 import org.example.immutable.processor.modeler.ImmutableImplsTest;
 import org.example.immutable.processor.modeler.ImmutableTypesTest;
+import org.example.immutable.processor.modeler.NamedTypesTest;
 import org.example.immutable.processor.modeler.TopLevelTypesTest;
 
 /**
@@ -35,6 +36,7 @@ public interface TestProcessorModule {
     static LiteProcessor provideLiteProcessor(
             Map<Class<? extends LiteProcessor>, LiteProcessor> liteProcessors, Class<? extends LiteProcessor> key) {
         LiteProcessor liteProcessor = liteProcessors.get(key);
+        Objects.requireNonNull(liteProcessor);
         return Objects.requireNonNull(liteProcessor);
     }
 
@@ -84,6 +86,12 @@ public interface TestProcessorModule {
     @IntoMap
     @LiteProcessorClassKey(ImmutableTypesTest.TestLiteProcessor.class)
     LiteProcessor bindImmutableTypesTestLiteProcessor(ImmutableTypesTest.TestLiteProcessor liteProcessor);
+
+    @Binds
+    @ProcessorScope
+    @IntoMap
+    @LiteProcessorClassKey(NamedTypesTest.TestLiteProcessor.class)
+    LiteProcessor bindNamedTypesTestLiteProcessor(NamedTypesTest.TestLiteProcessor liteProcessor);
 
     @Binds
     @ProcessorScope
