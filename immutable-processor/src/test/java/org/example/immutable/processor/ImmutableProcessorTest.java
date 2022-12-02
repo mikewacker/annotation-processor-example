@@ -26,6 +26,14 @@ public final class ImmutableProcessorTest {
         compile("test/Rectangle.java", "test.ImmutableRectangle", "generated/test/ImmutableRectangle.java");
     }
 
+    @Test
+    public void compile_ColoredRectangle() {
+        compile(
+                "test/ColoredRectangle.java",
+                "test.ImmutableColoredRectangle",
+                "generated/test/ImmutableColoredRectangle.java");
+    }
+
     private void compile(String sourcePath, String generatedQualifiedName, String expectedGeneratedSourcePath) {
         Compilation compilation = TestCompiler.create().compile(sourcePath);
         assertThat(compilation)
@@ -49,11 +57,6 @@ public final class ImmutableProcessorTest {
 
     private void compileWithoutVerifyingSource(Iterable<String> sourcePaths) {
         TestCompiler.create().compile(sourcePaths);
-    }
-
-    @Test
-    public void unsupported_ColoredRectangle() {
-        error("test/ColoredRectangle.java");
     }
 
     @Test

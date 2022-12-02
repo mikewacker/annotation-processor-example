@@ -1,8 +1,11 @@
 package org.example.immutable.processor.modeler;
 
+import java.util.List;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ErrorType;
@@ -19,6 +22,7 @@ import javax.lang.model.type.WildcardType;
 import org.example.immutable.processor.base.ProcessorScope;
 import org.example.immutable.processor.error.Errors;
 import org.example.immutable.processor.model.NamedType;
+import org.example.immutable.processor.model.TopLevelType;
 
 /**
  * Creates {@link NamedType}'s from {@link TypeMirror}'s.
@@ -35,11 +39,14 @@ import org.example.immutable.processor.model.NamedType;
 final class NamedTypes {
 
     private static final NamedType ERROR_TYPE = NamedType.of("?");
+    private static final TopLevelType ERROR_TOP_LEVEL_TYPE = TopLevelType.of("?", "?");
 
+    private final TopLevelTypes topLevelTypeFactory;
     private final Errors errorReporter;
 
     @Inject
-    NamedTypes(Errors errorReporter) {
+    NamedTypes(TopLevelTypes topLevelTypeFactory, Errors errorReporter) {
+        this.topLevelTypeFactory = topLevelTypeFactory;
         this.errorReporter = errorReporter;
     }
 
@@ -86,7 +93,17 @@ final class NamedTypes {
 
         @Override
         public NamedType visitDeclared(DeclaredType declaredType, Void unused) {
-            return error("declared types are not supported");
+            // Return the raw type model if no type arguments exist.
+            NamedType rawTypeModel = visitDeclaredRaw(declaredType);
+            List<? extends TypeMirror> typeArgs = declaredType.getTypeArguments();
+            if (typeArgs.isEmpty()) {
+                return rawTypeModel;
+            }
+
+            // Append the type arguments.
+            List<NamedType> typeArgModels = typeArgs.stream().map(this::accept).toList();
+            NamedType typeArgsModel = NamedType.join(typeArgModels, ", ", "<", ">");
+            return NamedType.concat(rawTypeModel, typeArgsModel);
         }
 
         @Override
@@ -101,7 +118,20 @@ final class NamedTypes {
 
         @Override
         public NamedType visitWildcard(WildcardType wildcardType, Void unused) {
-            return error("wildcards are not supported");
+            // Visit the extends bound if applicable.
+            TypeMirror extendsBound = wildcardType.getExtendsBound();
+            if (extendsBound != null) {
+                return visitWildcardBound(extendsBound, "extends");
+            }
+
+            // Visit the super bound if applicable.
+            TypeMirror superBound = wildcardType.getSuperBound();
+            if (superBound != null) {
+                return visitWildcardBound(superBound, "super");
+            }
+
+            // Wildcard has no bounds.
+            return NamedType.of("?");
         }
 
         @Override
@@ -130,6 +160,31 @@ final class NamedTypes {
         public NamedType visitIntersection(IntersectionType intersectionType, Void unused) {
             // Type parameter bounds are represented as a list of types, not as a type which could be an intersection.
             return error("unexpected: intersection type");
+        }
+
+        /** Visits the raw type for a declared type. */
+        private NamedType visitDeclaredRaw(DeclaredType declaredType) {
+            TypeElement typeElement = (TypeElement) declaredType.asElement();
+            if (!checkIsTopLevelType(typeElement)) {
+                return ERROR_TYPE;
+            }
+
+            TopLevelType topLevelType =
+                    topLevelTypeFactory.create(typeElement, sourceElement).orElse(ERROR_TOP_LEVEL_TYPE);
+            return NamedType.of(topLevelType);
+        }
+
+        /** Visits a bounded wildcard. */
+        private NamedType visitWildcardBound(TypeMirror bound, String boundKind) {
+            NamedType boundModel = accept(bound);
+            String nameFormat = String.format("? %s %s", boundKind, boundModel.nameFormat());
+            return NamedType.of(nameFormat, boundModel.args());
+        }
+
+        private boolean checkIsTopLevelType(TypeElement typeElement) {
+            return (typeElement.getEnclosingElement().getKind() != ElementKind.PACKAGE)
+                    ? errorReporter.error("nested types are not supported", sourceElement)
+                    : true;
         }
 
         private NamedType accept(TypeMirror type) {

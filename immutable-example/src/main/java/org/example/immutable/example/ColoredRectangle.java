@@ -1,4 +1,4 @@
-package test;
+package org.example.immutable.example;
 
 import java.awt.Color;
 import java.util.Optional;
@@ -8,7 +8,7 @@ import org.example.immutable.Immutable;
 public interface ColoredRectangle {
 
     static ColoredRectangle of(Rectangle rectangle, Color fillColor, Optional<Color> edgeColor) {
-        return null; // Not implemented for testing purposes.
+        return new ImmutableColoredRectangle(rectangle, fillColor, edgeColor);
     }
 
     Rectangle rectangle();

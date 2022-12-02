@@ -25,23 +25,19 @@ public final class ImmutableImplsTest {
     }
 
     @Test
-    public void createRectangle() throws Exception {
+    public void create_Rectangle() throws Exception {
         create("test/Rectangle.java", TestImmutableImpls.rectangle());
+    }
+
+    @Test
+    public void create_ColoredRectangle() throws Exception {
+        create("test/ColoredRectangle.java", TestImmutableImpls.coloredRectangle());
     }
 
     private void create(String sourcePath, ImmutableImpl expectedImpl) throws Exception {
         Compilation compilation = TestCompiler.create(TestLiteProcessor.class).compile(sourcePath);
         ImmutableImpl impl = TestResources.loadObjectForSource(compilation, sourcePath, new TypeReference<>() {});
         assertThat(impl).isEqualTo(expectedImpl);
-    }
-
-    @Test
-    public void unsupported_ColoredRectangle() {
-        error(
-                "test/ColoredRectangle.java",
-                CompilationError.of(14, "[@Immutable] declared types are not supported"),
-                CompilationError.of(16, "[@Immutable] declared types are not supported"),
-                CompilationError.of(18, "[@Immutable] declared types are not supported"));
     }
 
     @Test

@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.testing.compile.Compilation;
+import java.util.List;
+import java.util.Map;
 import javax.annotation.processing.Filer;
 import javax.inject.Inject;
 import javax.lang.model.element.ExecutableElement;
@@ -12,6 +14,7 @@ import javax.lang.model.type.TypeMirror;
 import org.example.immutable.processor.base.ImmutableBaseLiteProcessor;
 import org.example.immutable.processor.base.ProcessorScope;
 import org.example.immutable.processor.model.NamedType;
+import org.example.immutable.processor.model.TopLevelType;
 import org.example.immutable.processor.test.CompilationError;
 import org.example.immutable.processor.test.CompilationErrorsSubject;
 import org.example.immutable.processor.test.TestCompiler;
@@ -27,6 +30,19 @@ public final class NamedTypesTest {
     }
 
     @Test
+    public void create_TypeDeclared() throws Exception {
+        NamedType expectedType = NamedType.of(TopLevelType.of(String.class));
+        create("test/method/TypeDeclared.java", expectedType);
+    }
+
+    @Test
+    public void create_TypeDeclaredGeneric() throws Exception {
+        NamedType expectedType = NamedType.of(
+                "%s<%s, %s>", TopLevelType.of(Map.class), TopLevelType.of(String.class), TopLevelType.of(String.class));
+        create("test/method/TypeDeclaredGeneric.java", expectedType);
+    }
+
+    @Test
     public void create_TypePrimitive() throws Exception {
         NamedType expectedType = NamedType.of("int");
         create("test/method/TypePrimitive.java", expectedType);
@@ -38,6 +54,26 @@ public final class NamedTypesTest {
         create("test/method/TypeVariable.java", expectedType);
     }
 
+    @Test
+    public void create_TypeWildcard() throws Exception {
+        NamedType expectedType = NamedType.of("%s<?>", TopLevelType.of(List.class));
+        create("test/method/TypeWildcard.java", expectedType);
+    }
+
+    @Test
+    public void create_TypeWildcardExtends() throws Exception {
+        NamedType expectedType =
+                NamedType.of("%s<? extends %s>", TopLevelType.of(List.class), TopLevelType.of(Runnable.class));
+        create("test/method/TypeWildcardExtends.java", expectedType);
+    }
+
+    @Test
+    public void create_TypeWildcardSuper() throws Exception {
+        NamedType expectedType =
+                NamedType.of("%s<? super %s>", TopLevelType.of(List.class), TopLevelType.of(Runnable.class));
+        create("test/method/TypeWildcardSuper.java", expectedType);
+    }
+
     private void create(String sourcePath, NamedType expectedType) throws Exception {
         Compilation compilation = TestCompiler.create(TestLiteProcessor.class).compile(sourcePath);
         NamedType type = TestResources.loadObjectForSource(compilation, sourcePath, new TypeReference<>() {});
@@ -45,66 +81,31 @@ public final class NamedTypesTest {
     }
 
     @Test
-    public void unsupported_TypeDeclared() {
-        error(
-                "test/method/unsupported/TypeDeclared.java",
-                CompilationError.of(8, "[@Immutable] declared types are not supported"));
-    }
-
-    @Test
-    public void unsupported_TypeDeclaredGeneric() {
-        error(
-                "test/method/unsupported/TypeDeclaredGeneric.java",
-                CompilationError.of(9, "[@Immutable] declared types are not supported"));
-    }
-
-    @Test
     public void unsupported_TypeDeclaredNested() {
         error(
                 "test/method/unsupported/TypeDeclaredNested.java",
-                CompilationError.of(8, "[@Immutable] declared types are not supported"));
+                CompilationError.of(8, "[@Immutable] nested types are not supported"));
     }
 
     @Test
     public void unsupported_TypeDeclaredNestedGenericInstance() {
         error(
                 "test/method/unsupported/TypeDeclaredNestedGenericInstance.java",
-                CompilationError.of(8, "[@Immutable] declared types are not supported"));
+                CompilationError.of(8, "[@Immutable] nested types are not supported"));
     }
 
     @Test
     public void unsupported_TypeDeclaredNestedGenericStatic() {
         error(
                 "test/method/unsupported/TypeDeclaredNestedGenericStatic.java",
-                CompilationError.of(9, "[@Immutable] declared types are not supported"));
+                CompilationError.of(9, "[@Immutable] nested types are not supported"));
     }
 
     @Test
     public void unsupported_TypeDeclaredPathological() {
         error(
                 "test/method/unsupported/TypeDeclaredPathological.java",
-                CompilationError.of(8, "[@Immutable] declared types are not supported"));
-    }
-
-    @Test
-    public void unsupported_TypeWildcard() {
-        error(
-                "test/method/unsupported/TypeWildcard.java",
-                CompilationError.of(9, "[@Immutable] declared types are not supported"));
-    }
-
-    @Test
-    public void unsupported_TypeWildcardExtends() {
-        error(
-                "test/method/unsupported/TypeWildcardExtends.java",
-                CompilationError.of(9, "[@Immutable] declared types are not supported"));
-    }
-
-    @Test
-    public void unsupported_TypeWildcardSuper() {
-        error(
-                "test/method/unsupported/TypeWildcardSuper.java",
-                CompilationError.of(9, "[@Immutable] declared types are not supported"));
+                CompilationError.of(8, "[@Immutable] nested types are not supported"));
     }
 
     @Test
