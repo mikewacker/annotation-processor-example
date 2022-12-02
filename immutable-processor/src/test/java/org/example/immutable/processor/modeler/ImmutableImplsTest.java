@@ -10,6 +10,8 @@ import javax.lang.model.element.TypeElement;
 import org.example.immutable.processor.base.ImmutableBaseLiteProcessor;
 import org.example.immutable.processor.base.ProcessorScope;
 import org.example.immutable.processor.model.ImmutableImpl;
+import org.example.immutable.processor.test.CompilationError;
+import org.example.immutable.processor.test.CompilationErrorsSubject;
 import org.example.immutable.processor.test.TestCompiler;
 import org.example.immutable.processor.test.TestImmutableImpls;
 import org.example.immutable.processor.test.TestResources;
@@ -26,6 +28,23 @@ public final class ImmutableImplsTest {
         Compilation compilation = TestCompiler.create(TestLiteProcessor.class).compile(sourcePath);
         ImmutableImpl impl = TestResources.loadObjectForSource(compilation, sourcePath, new TypeReference<>() {});
         assertThat(impl).isEqualTo(expectedImpl);
+    }
+
+    @Test
+    public void unsupported_Rectangle() {
+        error("test/Rectangle.java", CompilationError.of(6, "[@Immutable] methods are not supported"));
+    }
+
+    @Test
+    public void unsupported_ColoredRectangle() {
+        error("test/ColoredRectangle.java", CompilationError.of(8, "[@Immutable] methods are not supported"));
+    }
+
+    private void error(String sourcePath, CompilationError... expectedErrors) {
+        Compilation compilation = TestCompiler.create(TestLiteProcessor.class)
+                .expectingCompilationFailure()
+                .compile(sourcePath);
+        CompilationErrorsSubject.assertThat(compilation.errors()).containsExactlyInAnyOrder(expectedErrors);
     }
 
     @ProcessorScope
