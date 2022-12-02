@@ -4,6 +4,11 @@ import static com.google.testing.compile.CompilationSubject.assertThat;
 
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.JavaFileObjects;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.stream.Stream;
 import org.example.immutable.processor.test.TestCompiler;
 import org.junit.jupiter.api.Test;
 
@@ -22,6 +27,15 @@ public final class ImmutableProcessorTest {
     }
 
     @Test
+    public void compileWithoutVerifyingSource_TypeSources() throws IOException {
+        compileWithoutVerifyingSource(getSourcePaths("test/type"));
+    }
+
+    private void compileWithoutVerifyingSource(Iterable<String> sourcePaths) {
+        TestCompiler.create().compile(sourcePaths);
+    }
+
+    @Test
     public void unsupported_Rectangle() {
         error("test/Rectangle.java");
     }
@@ -31,7 +45,25 @@ public final class ImmutableProcessorTest {
         error("test/ColoredRectangle.java");
     }
 
+    @Test
+    public void error() {
+        error("test/type/error/Class.java");
+    }
+
     private void error(String sourcePath) {
         TestCompiler.create().expectingCompilationFailure().compile(sourcePath);
+    }
+
+    /** Gets all sources in the source directory. */
+    private static Iterable<String> getSourcePaths(String sourceDirPath) throws IOException {
+        Path dirPath = Paths.get(JavaFileObjects.forResource(sourceDirPath).toUri());
+        // dirPath is an absolute path, so we must convert absolute paths back to relative paths.
+        int relativeIndex = dirPath.toString().length() - sourceDirPath.length();
+        try (Stream<Path> paths = Files.walk(dirPath, 1)) {
+            return paths.map(Path::toString)
+                    .map(path -> path.substring(relativeIndex))
+                    .filter(path -> path.endsWith(".java"))
+                    .toList();
+        }
     }
 }

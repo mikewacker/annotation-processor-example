@@ -1,6 +1,7 @@
 package org.example.immutable.processor.modeler;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.example.immutable.processor.test.CompilationErrorsSubject.assertThat;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.testing.compile.Compilation;
@@ -14,6 +15,7 @@ import org.example.immutable.processor.base.ProcessorScope;
 import org.example.immutable.processor.model.ImmutableType;
 import org.example.immutable.processor.model.NamedType;
 import org.example.immutable.processor.model.TopLevelType;
+import org.example.immutable.processor.test.CompilationError;
 import org.example.immutable.processor.test.TestCompiler;
 import org.example.immutable.processor.test.TestImmutableImpls;
 import org.example.immutable.processor.test.TestResources;
@@ -41,6 +43,62 @@ public final class ImmutableTypesTest {
         Compilation compilation = TestCompiler.create(TestLiteProcessor.class).compile(sourcePath);
         ImmutableType type = TestResources.loadObjectForSource(compilation, sourcePath, new TypeReference<>() {});
         assertThat(normalizeType(type)).isEqualTo(normalizeType(expectedType));
+    }
+
+    @Test
+    public void unsupported_InterfaceGeneric() {
+        error(
+                "test/type/unsupported/InterfaceGeneric.java",
+                CompilationError.of(6, "[@Immutable] generic interfaces are not supported"));
+    }
+
+    @Test
+    public void unsupported_InterfaceGenericBounds() {
+        error(
+                "test/type/unsupported/InterfaceGenericBounds.java",
+                CompilationError.of(8, "[@Immutable] generic interfaces are not supported"));
+    }
+
+    @Test
+    public void unsupported_Nested() {
+        error(
+                "test/type/unsupported/InterfaceNested.java",
+                CompilationError.of(8, "[@Immutable] nested interfaces are not supported"));
+    }
+
+    @Test
+    public void error_Class() {
+        error("test/type/error/Class.java", CompilationError.of(6, "[@Immutable] type must be an interface"));
+    }
+
+    @Test
+    public void error_InterfaceNestedWithImpl() {
+        error(
+                "test/type/error/InterfaceNestedWithImpl.java",
+                CompilationError.of(8, "[@Immutable] nested interfaces are not supported"));
+    }
+
+    @Test
+    public void error_InterfaceWithoutPackage() {
+        error(
+                "test/type/error/InterfaceWithoutPackage.java",
+                CompilationError.of(4, "[@Immutable] type must have a package"));
+    }
+
+    @Test
+    public void error_InterfaceWithImpl() {
+        error(
+                "test/type/error/InterfaceWithImpl.java",
+                CompilationError.of(
+                        6,
+                        "[@Immutable] implementation type already exists: test.type.error.ImmutableInterfaceWithImpl"));
+    }
+
+    private void error(String sourcePath, CompilationError expectedError) {
+        Compilation compilation = TestCompiler.create(TestLiteProcessor.class)
+                .expectingCompilationFailure()
+                .compile(sourcePath);
+        assertThat(compilation.errors()).containsExactlyInAnyOrder(expectedError);
     }
 
     /** Empties the package types for comparison purposes. */
