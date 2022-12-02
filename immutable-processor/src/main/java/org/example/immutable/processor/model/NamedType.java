@@ -35,6 +35,18 @@ public interface NamedType {
         return join(List.of(type1, type2), "", "", "");
     }
 
+    /** Concatenates a type and a suffix into a single type. */
+    static NamedType concat(NamedType type, String suffix) {
+        String nameFormat = String.format("%s%s", type.nameFormat(), suffix);
+        return NamedType.of(nameFormat, type.args());
+    }
+
+    /** Concatenates a prefix and a type into a single type. */
+    static NamedType concat(String prefix, NamedType type) {
+        String nameFormat = String.format("%s%s", prefix, type.nameFormat());
+        return NamedType.of(nameFormat, type.args());
+    }
+
     /** Joins a list of types into a single type. */
     static NamedType join(List<NamedType> types, String delimiter, String prefix, String suffix) {
         String nameFormat =

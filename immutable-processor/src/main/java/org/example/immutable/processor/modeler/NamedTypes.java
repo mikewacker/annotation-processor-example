@@ -92,8 +92,7 @@ final class NamedTypes {
         @Override
         public NamedType visitArray(ArrayType arrayType, Void unused) {
             NamedType componentTypeModel = accept(arrayType.getComponentType());
-            String nameFormat = String.format("%s[]", componentTypeModel.nameFormat());
-            return NamedType.of(nameFormat, componentTypeModel.args());
+            return NamedType.concat(componentTypeModel, "[]");
         }
 
         @Override
@@ -186,8 +185,7 @@ final class NamedTypes {
             String innerNameSuffix = qualifiedName.substring(outerQualifiedName.length());
 
             // Create the type model.
-            String nameFormat = String.format("%s%s", outerTypeModel.nameFormat(), innerNameSuffix);
-            return NamedType.of(nameFormat, outerTypeModel.args());
+            return NamedType.concat(outerTypeModel, innerNameSuffix);
         }
 
         /** Visits the raw type for a top-level type or a nested static type. */
@@ -203,26 +201,27 @@ final class NamedTypes {
             TypeElement topLevelTypeElement = (TypeElement) currentElement;
 
             // Create the type model for top-level types.
-            TopLevelType arg = topLevelTypeFactory
+            TopLevelType topLevelType = topLevelTypeFactory
                     .create(topLevelTypeElement, sourceElement)
                     .orElse(ERROR_TOP_LEVEL_TYPE);
+            NamedType topLevelTypeModel = NamedType.of(topLevelType);
             if (nestedTypeElements.isEmpty()) {
-                return NamedType.of(arg);
+                return topLevelTypeModel;
             }
 
             // Create the type model for nested types.
-            String nameFormat = nestedTypeElements.stream()
+            String innerNameSuffix = nestedTypeElements.stream()
                     .map(Element::getSimpleName)
                     .map(Name::toString)
-                    .collect(Collectors.joining(".", "%s.", ""));
-            return NamedType.of(nameFormat, arg);
+                    .collect(Collectors.joining(".", ".", ""));
+            return NamedType.concat(topLevelTypeModel, innerNameSuffix);
         }
 
         /** Visits a bounded wildcard. */
         private NamedType visitWildcardBound(TypeMirror bound, String boundKind) {
             NamedType boundModel = accept(bound);
-            String nameFormat = String.format("? %s %s", boundKind, boundModel.nameFormat());
-            return NamedType.of(nameFormat, boundModel.args());
+            String prefix = String.format("? %s ", boundKind);
+            return NamedType.concat(prefix, boundModel);
         }
 
         private NamedType accept(TypeMirror type) {
