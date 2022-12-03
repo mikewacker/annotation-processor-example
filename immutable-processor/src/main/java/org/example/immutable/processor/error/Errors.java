@@ -14,6 +14,8 @@ import org.example.immutable.processor.base.ProcessorScope;
  * Reports diagnostic errors, which result in compilation errors.
  *
  * <p>It also tracks errors, which allows processing to continue for non-fatal errors.</p>
+ *
+ * <p>{@link Messager} should not be used directly; this will break the error tracking.</p>
  */
 @ProcessorScope
 public final class Errors {

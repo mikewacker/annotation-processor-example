@@ -37,7 +37,11 @@ public final class TestCompiler {
         return new TestCompiler(processor);
     }
 
-    /** Creates a compiler with {@link ImmutableBaseProcessor} and a custom {@link LiteProcessor}. */
+    /**
+     * Creates a compiler with {@link ImmutableBaseProcessor} and a custom {@link LiteProcessor}.
+     *
+     * <p>To be used, the {@link LiteProcessor} class must also be added to {@link TestProcessorModule}.</p>
+     */
     public static TestCompiler create(Class<? extends LiteProcessor> liteProcessorClass) {
         Processor processor = new TestImmutableProcessor(liteProcessorClass);
         return new TestCompiler(processor);
