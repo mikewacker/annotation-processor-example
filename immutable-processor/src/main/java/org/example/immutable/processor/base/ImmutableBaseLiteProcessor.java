@@ -17,7 +17,7 @@ public abstract class ImmutableBaseLiteProcessor implements LiteProcessor {
 
     @Override
     public final void process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        ImmutableBaseLiteProcessor.getImmutableTypes(annotations, roundEnv).forEach(this::process);
+        getImmutableTypes(annotations, roundEnv).forEach(this::process);
     }
 
     /** Processes a type annotated with {@link Immutable}. */

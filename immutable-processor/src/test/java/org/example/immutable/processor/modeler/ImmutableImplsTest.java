@@ -52,6 +52,15 @@ public final class ImmutableImplsTest {
                 CompilationError.of(8, "[@Immutable] method must not have parameters"));
     }
 
+    @Test
+    public void error_MultipleErrors() {
+        error(
+                "test/error/MultipleErrors.java",
+                CompilationError.of(6, "[@Immutable] type must be an interface"),
+                CompilationError.of(8, "[@Immutable] void type not allowed"),
+                CompilationError.of(10, "[@Immutable] method must not have type parameters"));
+    }
+
     private void error(String sourcePath, CompilationError... expectedErrors) {
         Compilation compilation = TestCompiler.create(TestLiteProcessor.class)
                 .expectingCompilationFailure()
