@@ -42,8 +42,8 @@ final class ImmutableTypes {
 
     /** Creates an {@link ImmutableType}, or empty if validation fails. */
     public Optional<ImmutableType> create(TypeElement typeElement) {
-        // Create and validate the raw types.
         try (Errors.Tracker errorTracker = errorReporter.createErrorTracker()) {
+            // Create and validate the raw types.
             Optional<NamedType> maybeRawInterfaceType = createRawInterfaceType(typeElement);
             if (maybeRawInterfaceType.isEmpty()) {
                 return Optional.empty();
@@ -53,7 +53,7 @@ final class ImmutableTypes {
             TopLevelType rawImplType = createRawImplType(rawInterfaceType, typeElement);
             Set<String> packageTypes = createPackageTypes(typeElement);
 
-            // Create and validate the types. Generics are not yet supported.
+            // Create and validate the (possibly generic) types.
             List<? extends TypeParameterElement> typeParamElements = typeElement.getTypeParameters();
             List<String> typeVars = getTypeVars(typeParamElements);
             NamedType interfaceType = createInterfaceType(rawInterfaceType, typeParamElements);
@@ -89,14 +89,15 @@ final class ImmutableTypes {
      */
     private TopLevelType createRawFlatInterfaceType(NamedType rawInterfaceType, Element sourceElement) {
         // Top-level types do not require flattening.
-        if (!rawInterfaceType.nameFormat().contains(".")) {
-            return rawInterfaceType.args().get(0);
+        String unqualifiedInterfaceName = rawInterfaceType.name();
+        TopLevelType topLevelType = rawInterfaceType.args().get(0);
+        if (!unqualifiedInterfaceName.contains(".")) {
+            return topLevelType;
         }
 
-        // Normalize the nested interface type.
-        String packageName = rawInterfaceType.args().get(0).packageName();
-        String simpleFlatInterfaceName = rawInterfaceType.name().replace(".", "_");
-        TopLevelType rawFlatInterfaceType = TopLevelType.of(packageName, simpleFlatInterfaceName);
+        // Flatten the nested interface type.
+        String simpleFlatInterfaceName = unqualifiedInterfaceName.replace(".", "_");
+        TopLevelType rawFlatInterfaceType = TopLevelType.of(topLevelType.packageName(), simpleFlatInterfaceName);
         checkFlatInterfaceTypeDoesNotExistAsImmutable(rawFlatInterfaceType, sourceElement);
         return rawFlatInterfaceType;
     }
@@ -162,7 +163,7 @@ final class ImmutableTypes {
         List<? extends TypeMirror> bounds = typeParamElement.getBounds();
 
         // Return the type variable for type parameters without bounds.
-        if ((bounds.size() == 1) && bounds.get(0).toString().equals(OBJECT_CANONICAL_NAME)) {
+        if (!hasBounds(bounds)) {
             return NamedType.of(typeVar);
         }
 
@@ -173,6 +174,16 @@ final class ImmutableTypes {
                 .toList();
         String prefix = String.format("%s extends ", typeVar);
         return NamedType.join(boundTypes, " & ", prefix, "");
+    }
+
+    /** Determines if a type parameter has bounds (not including the {@link Object} bound). */
+    private boolean hasBounds(List<? extends TypeMirror> bounds) {
+        if (bounds.size() > 1) {
+            return true;
+        }
+
+        TypeMirror bound = bounds.get(0);
+        return !bound.toString().equals(OBJECT_CANONICAL_NAME);
     }
 
     private boolean checkIsInterface(TypeElement typeElement) {
