@@ -22,7 +22,7 @@ public interface TopLevelType {
                 .build();
     }
 
-    static TopLevelType of(Class<?> clazz) {
+    static TopLevelType ofClass(Class<?> clazz) {
         return of(clazz.getPackageName(), clazz.getSimpleName());
     }
 

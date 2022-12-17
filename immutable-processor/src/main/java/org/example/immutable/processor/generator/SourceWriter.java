@@ -15,8 +15,8 @@ import org.example.immutable.processor.model.TopLevelType;
 /** Writes the source code for an {@link ImmutableImpl}, using an open {@link Writer}. */
 final class SourceWriter {
 
-    private static final NamedType GENERATED_TYPE = NamedType.of(TopLevelType.of(Generated.class));
-    private static final NamedType OVERRIDE_TYPE = NamedType.of(TopLevelType.of(Override.class));
+    private static final NamedType GENERATED_TYPE = NamedType.ofTopLevelType(TopLevelType.ofClass(Generated.class));
+    private static final NamedType OVERRIDE_TYPE = NamedType.ofTopLevelType(TopLevelType.ofClass(Override.class));
     private static final String PROCESSOR_QUALIFIED_NAME = ImmutableProcessor.class.getCanonicalName();
 
     private final PrintWriter writer;

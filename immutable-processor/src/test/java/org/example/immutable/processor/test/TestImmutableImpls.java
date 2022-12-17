@@ -38,8 +38,8 @@ public final class TestImmutableImpls {
         TopLevelType rawInterfaceType = TopLevelType.of("test", "Rectangle");
 
         List<String> typeVars = List.of();
-        NamedType implType = NamedType.of(rawImplType);
-        NamedType interfaceType = NamedType.of(rawInterfaceType);
+        NamedType implType = NamedType.ofTopLevelType(rawImplType);
+        NamedType interfaceType = NamedType.ofTopLevelType(rawInterfaceType);
 
         ImmutableType type = ImmutableType.of(rawImplType, PACKAGE_TYPES, typeVars, implType, interfaceType);
 
@@ -59,8 +59,8 @@ public final class TestImmutableImpls {
         TopLevelType rawInterfaceType = TopLevelType.of("test", "ColoredRectangle");
 
         List<String> typeVars = List.of();
-        NamedType implType = NamedType.of(rawImplType);
-        NamedType interfaceType = NamedType.of(rawInterfaceType);
+        NamedType implType = NamedType.ofTopLevelType(rawImplType);
+        NamedType interfaceType = NamedType.ofTopLevelType(rawInterfaceType);
 
         ImmutableType type = ImmutableType.of(rawImplType, PACKAGE_TYPES, typeVars, implType, interfaceType);
 
@@ -69,8 +69,8 @@ public final class TestImmutableImpls {
         TopLevelType colorImport = TopLevelType.of("java.awt", "Color");
         TopLevelType optionalImport = TopLevelType.of("java.util", "Optional");
 
-        NamedType rectangleType = NamedType.of(rectangleImport);
-        NamedType colorType = NamedType.of(colorImport);
+        NamedType rectangleType = NamedType.ofTopLevelType(rectangleImport);
+        NamedType colorType = NamedType.ofTopLevelType(colorImport);
         NamedType optionalColorType = NamedType.of("%s<%s>", optionalImport, colorImport);
 
         ImmutableMember rectangle = ImmutableMember.of("rectangle", rectangleType);
@@ -87,8 +87,8 @@ public final class TestImmutableImpls {
         TopLevelType rawInterfaceType = TopLevelType.of("test", "Empty");
 
         List<String> typeVars = List.of();
-        NamedType implType = NamedType.of(rawImplType);
-        NamedType interfaceType = NamedType.of(rawInterfaceType);
+        NamedType implType = NamedType.ofTopLevelType(rawImplType);
+        NamedType interfaceType = NamedType.ofTopLevelType(rawInterfaceType);
 
         ImmutableType type = ImmutableType.of(rawImplType, PACKAGE_TYPES, typeVars, implType, interfaceType);
 

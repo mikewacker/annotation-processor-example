@@ -143,7 +143,7 @@ final class ImmutableTypes {
     /** Creates the implementation type from the raw implementation type and the type parameters. */
     private NamedType createImplType(
             TopLevelType rawImplTopLevelType, List<? extends TypeParameterElement> typeParamElements) {
-        NamedType rawImplType = NamedType.of(rawImplTopLevelType);
+        NamedType rawImplType = NamedType.ofTopLevelType(rawImplTopLevelType);
 
         // Return the raw type for non-generic types.
         if (typeParamElements.isEmpty()) {

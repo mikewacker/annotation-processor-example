@@ -28,13 +28,13 @@ public final class ImmutableImplTest {
                 Set.of("Rectangle", "ColoredRectangle", "Empty"),
                 Set.of(),
                 Set.of(
-                        TopLevelType.of(Generated.class),
-                        TopLevelType.of(Override.class),
+                        TopLevelType.ofClass(Generated.class),
+                        TopLevelType.ofClass(Override.class),
                         TopLevelType.of("test", "ImmutableColoredRectangle"),
                         TopLevelType.of("test", "ColoredRectangle"),
                         TopLevelType.of("test", "Rectangle"),
-                        TopLevelType.of(Color.class),
-                        TopLevelType.of(Optional.class)));
+                        TopLevelType.ofClass(Color.class),
+                        TopLevelType.ofClass(Optional.class)));
         assertThat(typeQualifier).isEqualTo(expectedTypeQualifier);
     }
 

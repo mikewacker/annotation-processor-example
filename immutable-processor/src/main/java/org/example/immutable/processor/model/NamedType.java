@@ -26,7 +26,7 @@ public interface NamedType {
         return of(nameFormat, List.of(args));
     }
 
-    static NamedType of(TopLevelType topLevelType) {
+    static NamedType ofTopLevelType(TopLevelType topLevelType) {
         return of("%s", topLevelType);
     }
 

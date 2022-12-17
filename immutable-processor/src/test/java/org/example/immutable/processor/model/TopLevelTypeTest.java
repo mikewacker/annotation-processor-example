@@ -11,8 +11,8 @@ import org.junit.jupiter.api.Test;
 public final class TopLevelTypeTest {
 
     @Test
-    public void of_Class() {
-        TopLevelType type = TopLevelType.of(String.class);
+    public void ofClass() {
+        TopLevelType type = TopLevelType.ofClass(String.class);
         assertThat(type.packageName()).isEqualTo("java.lang");
         assertThat(type.simpleName()).isEqualTo("String");
     }
