@@ -39,8 +39,7 @@ final class SourceWriter {
 
     /** Writes the source code. */
     private void writeSource() {
-        writePackage();
-        writeImports();
+        writePackageAndImports();
         writeClassHeader();
         if (impl.members().isEmpty()) {
             writeConstructor();
@@ -53,28 +52,27 @@ final class SourceWriter {
         writeClassFooter();
     }
 
-    /** Writes the package statement. */
-    private void writePackage() {
-        writer.format("package %s;", impl.type().rawImplType().packageName()).println();
-    }
-
-    /** Writes the import statements. */
-    private void writeImports() {
+    /** Writes the package and the imports. */
+    private void writePackageAndImports() {
+        String packageName = impl.type().rawImplType().packageName();
         Set<TopLevelType> importedTypes = impl.typeQualifier().importedTypes();
 
-        if (importedTypes.isEmpty()) {
-            return;
+        if (!packageName.isEmpty()) {
+            writer.format("package %s;", packageName).println();
+            writer.println();
         }
-        writer.println();
-        importedTypes.forEach(
-                type -> writer.format("import %s;", type.qualifiedName()).println());
+
+        if (!importedTypes.isEmpty()) {
+            importedTypes.forEach(
+                    type -> writer.format("import %s;", type.qualifiedName()).println());
+            writer.println();
+        }
     }
 
     /** Writes the class declaration and the opening curly brace. */
     private void writeClassHeader() {
         ImmutableType type = impl.type();
 
-        writer.println();
         writer.format("@%s(\"%s\")", name(GENERATED_TYPE), PROCESSOR_QUALIFIED_NAME)
                 .println();
         writer.format("class %s implements %s {", declarationName(type.implType()), name(type.interfaceType()))

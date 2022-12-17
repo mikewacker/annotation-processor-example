@@ -36,6 +36,11 @@ public final class SourceWriterTest {
     }
 
     @Test
+    public void writeSource_InterfaceWithoutPackage() throws IOException {
+        writeSource(createImpl_InterfaceWithoutPackage(), "generated/ImmutableInterfaceWithoutPackage.java");
+    }
+
+    @Test
     public void writeSource_QualifiedTypes() throws IOException {
         writeSource(createImpl_QualifiedTypes(), "generated/test/source/ImmutableQualifiedTypes.java");
     }
@@ -50,6 +55,22 @@ public final class SourceWriterTest {
     private void writeSource(ImmutableImpl impl, String expectedSourcePath) throws IOException {
         String source = writeSourceToString(impl);
         assertThat(source).isEqualTo(loadSource(expectedSourcePath));
+    }
+
+    private static ImmutableImpl createImpl_InterfaceWithoutPackage() {
+        // Create the type.
+        TopLevelType rawImplType = TopLevelType.of("", "ImmutableInterfaceWithoutPackage");
+        TopLevelType rawInterfaceType = TopLevelType.of("", "InterfaceWithoutPackage");
+        Set<String> packageTypes = Set.of("InterfaceWithoutPackage");
+
+        List<String> typeVars = List.of();
+        NamedType implType = NamedType.ofTopLevelType(rawImplType);
+        NamedType interfaceType = NamedType.ofTopLevelType(rawInterfaceType);
+
+        ImmutableType type = ImmutableType.of(rawImplType, packageTypes, typeVars, implType, interfaceType);
+
+        // Create the implementation.
+        return ImmutableImpl.of(type, List.of());
     }
 
     private static ImmutableImpl createImpl_QualifiedTypes() {

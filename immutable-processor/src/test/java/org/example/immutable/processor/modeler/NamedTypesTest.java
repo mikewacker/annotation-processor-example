@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Elements;
 import org.example.immutable.processor.base.ImmutableBaseLiteProcessor;
 import org.example.immutable.processor.base.ProcessorScope;
 import org.example.immutable.processor.model.NamedType;
@@ -146,12 +147,14 @@ public final class NamedTypesTest {
 
         private final NamedTypes typeFactory;
         private final ElementNavigator navigator;
+        private final Elements elementUtils;
         private final Filer filer;
 
         @Inject
-        TestLiteProcessor(NamedTypes types, ElementNavigator navigator, Filer filer) {
+        TestLiteProcessor(NamedTypes types, ElementNavigator navigator, Elements elementUtils, Filer filer) {
             this.typeFactory = types;
             this.navigator = navigator;
+            this.elementUtils = elementUtils;
             this.filer = filer;
         }
 
@@ -162,7 +165,7 @@ public final class NamedTypesTest {
             TypeMirror returnType = sourceElement.getReturnType();
             typeFactory
                     .create(returnType, sourceElement)
-                    .ifPresent(type -> TestResources.saveObject(filer, typeElement, type));
+                    .ifPresent(type -> TestResources.saveObject(filer, typeElement, elementUtils, type));
         }
     }
 }

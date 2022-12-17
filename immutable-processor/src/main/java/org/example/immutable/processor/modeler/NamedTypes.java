@@ -1,14 +1,9 @@
 package org.example.immutable.processor.modeler;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
@@ -24,10 +19,10 @@ import javax.lang.model.type.TypeVariable;
 import javax.lang.model.type.TypeVisitor;
 import javax.lang.model.type.UnionType;
 import javax.lang.model.type.WildcardType;
+import javax.lang.model.util.Elements;
 import org.example.immutable.processor.base.ProcessorScope;
 import org.example.immutable.processor.error.Errors;
 import org.example.immutable.processor.model.NamedType;
-import org.example.immutable.processor.model.TopLevelType;
 
 /**
  * Creates {@link NamedType}'s from {@link TypeMirror}'s.
@@ -44,15 +39,14 @@ import org.example.immutable.processor.model.TopLevelType;
 final class NamedTypes {
 
     private static final NamedType ERROR_TYPE = NamedType.of("?");
-    private static final TopLevelType ERROR_TOP_LEVEL_TYPE = TopLevelType.of("?", "?");
 
-    private final TopLevelTypes topLevelTypeFactory;
     private final Errors errorReporter;
+    private final Elements elementUtils;
 
     @Inject
-    NamedTypes(TopLevelTypes topLevelTypeFactory, Errors errorReporter) {
-        this.topLevelTypeFactory = topLevelTypeFactory;
+    NamedTypes(Errors errorReporter, Elements elementUtils) {
         this.errorReporter = errorReporter;
+        this.elementUtils = elementUtils;
     }
 
     /** Creates an {@link NamedType}, or empty if validation fails. */
@@ -170,7 +164,9 @@ final class NamedTypes {
         private NamedType visitDeclaredRaw(DeclaredType declaredType) {
             // The base case is top-level type or a nested static type.
             if (declaredType.getEnclosingType().getKind() == TypeKind.NONE) {
-                return visitDeclaredRawStatic(declaredType);
+                TypeElement typeElement = (TypeElement) declaredType.asElement();
+                String binaryName = elementUtils.getBinaryName(typeElement).toString();
+                return NamedType.ofBinaryName(binaryName);
             }
 
             // Visit the outer type.
@@ -186,35 +182,6 @@ final class NamedTypes {
 
             // Create the type model.
             return NamedType.concat(outerTypeModel, innerNameSuffix);
-        }
-
-        /** Visits the raw type for a top-level type or a nested static type. */
-        private NamedType visitDeclaredRawStatic(DeclaredType declaredType) {
-            // Get all the type elements.
-            Element currentElement = declaredType.asElement();
-            Deque<TypeElement> nestedTypeElements = new ArrayDeque<>();
-            for (;
-                    currentElement.getEnclosingElement().getKind() != ElementKind.PACKAGE;
-                    currentElement = currentElement.getEnclosingElement()) {
-                nestedTypeElements.addFirst((TypeElement) currentElement);
-            }
-            TypeElement topLevelTypeElement = (TypeElement) currentElement;
-
-            // Create the type model for top-level types.
-            TopLevelType topLevelType = topLevelTypeFactory
-                    .create(topLevelTypeElement, sourceElement)
-                    .orElse(ERROR_TOP_LEVEL_TYPE);
-            NamedType topLevelTypeModel = NamedType.ofTopLevelType(topLevelType);
-            if (nestedTypeElements.isEmpty()) {
-                return topLevelTypeModel;
-            }
-
-            // Create the type model for nested types.
-            String innerNameSuffix = nestedTypeElements.stream()
-                    .map(Element::getSimpleName)
-                    .map(Name::toString)
-                    .collect(Collectors.joining(".", ".", ""));
-            return NamedType.concat(topLevelTypeModel, innerNameSuffix);
         }
 
         /** Visits a bounded wildcard. */

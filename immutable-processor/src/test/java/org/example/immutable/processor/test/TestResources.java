@@ -11,22 +11,19 @@ import com.google.testing.compile.Compilation;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import javax.annotation.processing.Filer;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.Name;
-import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.util.Elements;
 import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 
 /**
  * Saves Java objects to JSON resource files during annotation processing, and loads those objects as well.
+ *
+ * <p>A resource file is associated with a {@link TypeElement}, and its path is the same as the source's path,
+ * except that it has a .json extension. For nested classes, the binary name is used.<p>
  *
  * <p>It assumes that the Java objects can be serialized to and deserialized from JSON.</p>
  */
@@ -44,38 +41,24 @@ public final class TestResources {
         assertThat(deserializedT).isEqualTo(t);
     }
 
-    /**
-     * Saves a corresponding object for the type to a resource file during annotation processing.
-     *
-     * <p>For top-level types with the same name as the source,
-     * the resource path is simply the source path, but with a .json extension.</p>
-     */
-    public static void saveObject(Filer filer, TypeElement typeElement, Object object) {
+    /** Saves a corresponding object for the type to a resource file during annotation processing. */
+    public static void saveObject(Filer filer, TypeElement typeElement, Elements elementUtils, Object object) {
         try {
-            FileObject resourceFile = createResourceFile(filer, typeElement);
+            FileObject resourceFile = createResourceFile(filer, typeElement, elementUtils);
             saveObject(resourceFile, object);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    /**
-     * Loads an object from a generated resource file.
-     *
-     * <p>It assumes that the resource path is the source path, but with a .json extension.
-     * It can be used for top-level types with the same name as the source.</p>
-     */
+    /** Loads an object from a generated resource file corresponding to the source path. */
     public static <T> T loadObjectForSource(Compilation compilation, String sourcePath, TypeReference<T> type)
             throws Exception {
         String resourcePath = sourcePath.replace(".java", ".json");
         return loadObjectFromGeneratedResource(compilation, resourcePath, type);
     }
 
-    /**
-     * Loads an object from a generated resource file.
-     *
-     * <p>This method is used when the source path and resource path don't correspond (e.g., nested types).</p>
-     */
+    /** Loads an object from a generated resource file. */
     public static <T> T loadObjectFromGeneratedResource(
             Compilation compilation, String resourcePath, TypeReference<T> type) throws Exception {
         FileObject resourceFile = getResourceFile(compilation, resourcePath);
@@ -91,22 +74,15 @@ public final class TestResources {
     }
 
     /** Creates a resource file for the type during annotation processing. */
-    private static FileObject createResourceFile(Filer filer, TypeElement typeElement) throws IOException {
-        // Get all the elements.
-        Element currentElement = typeElement;
-        Deque<Element> typeElements = new ArrayDeque<>();
-        for (; currentElement.getKind() != ElementKind.PACKAGE; currentElement = currentElement.getEnclosingElement()) {
-            typeElements.addFirst(currentElement);
-        }
-        PackageElement packageElement = (PackageElement) currentElement;
-
-        // Create the file.
-        String packageName = packageElement.getQualifiedName().toString();
-        String simpleName = typeElements.stream()
-                .map(Element::getSimpleName)
-                .map(Name::toString)
-                .collect(Collectors.joining("_"));
-        String fileName = String.format("%s.json", simpleName);
+    private static FileObject createResourceFile(Filer filer, TypeElement typeElement, Elements elementUtils)
+            throws IOException {
+        String binaryName = elementUtils.getBinaryName(typeElement).toString();
+        int lastDotIndex = binaryName.lastIndexOf('.');
+        int packageEndIndex = (lastDotIndex != -1) ? lastDotIndex : 0;
+        int classIndex = (lastDotIndex != -1) ? lastDotIndex + 1 : 0;
+        String packageName = binaryName.substring(0, packageEndIndex);
+        String className = binaryName.substring(classIndex);
+        String fileName = String.format("%s.json", className);
         return filer.createResource(StandardLocation.SOURCE_OUTPUT, packageName, fileName, typeElement);
     }
 
