@@ -263,8 +263,8 @@ private void error(String sourcePath) {
 }
 ````
 
-[`CompilationErrorsSubject`](immutable-processor/src/test/java/org/example/immutable/processor/test/CompilationErrorsSubject.java)
-also provides fluent assertions to verify specific compilation errors.
+[`CompilationError.fromCompilation()`](immutable-processor/src/test/java/org/example/immutable/processor/test/CompilationError.java)
+can be used to obtain a subject to run fluent assertions (i.e., `assertThat()`) against.
 
 ### Verifying the Generated Code
 

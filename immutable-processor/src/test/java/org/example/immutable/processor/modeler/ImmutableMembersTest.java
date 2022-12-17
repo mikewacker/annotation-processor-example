@@ -13,7 +13,6 @@ import org.example.immutable.processor.base.ImmutableBaseLiteProcessor;
 import org.example.immutable.processor.base.ProcessorScope;
 import org.example.immutable.processor.model.ImmutableMember;
 import org.example.immutable.processor.test.CompilationError;
-import org.example.immutable.processor.test.CompilationErrorsSubject;
 import org.example.immutable.processor.test.TestCompiler;
 import org.example.immutable.processor.test.TestImmutableImpls;
 import org.example.immutable.processor.test.TestResources;
@@ -57,7 +56,7 @@ public final class ImmutableMembersTest {
         Compilation compilation = TestCompiler.create(TestLiteProcessor.class)
                 .expectingCompilationFailure()
                 .compile(sourcePath);
-        CompilationErrorsSubject.assertThat(compilation.errors()).containsExactlyInAnyOrder(expectedError);
+        assertThat(CompilationError.fromCompilation(compilation)).containsExactlyInAnyOrder(expectedError);
     }
 
     @ProcessorScope

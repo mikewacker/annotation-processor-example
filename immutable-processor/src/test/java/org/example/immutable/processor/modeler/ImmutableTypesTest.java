@@ -1,7 +1,6 @@
 package org.example.immutable.processor.modeler;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.example.immutable.processor.test.CompilationErrorsSubject.assertThat;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.testing.compile.Compilation;
@@ -130,7 +129,7 @@ public final class ImmutableTypesTest {
         Compilation compilation = TestCompiler.create(TestLiteProcessor.class)
                 .expectingCompilationFailure()
                 .compile(sourcePath);
-        assertThat(compilation.errors()).containsExactlyInAnyOrder(expectedError);
+        assertThat(CompilationError.fromCompilation(compilation)).containsExactlyInAnyOrder(expectedError);
     }
 
     /** Empties the package types for comparison purposes. */

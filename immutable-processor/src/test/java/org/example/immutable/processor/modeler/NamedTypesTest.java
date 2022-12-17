@@ -17,7 +17,6 @@ import org.example.immutable.processor.base.ProcessorScope;
 import org.example.immutable.processor.model.NamedType;
 import org.example.immutable.processor.model.TopLevelType;
 import org.example.immutable.processor.test.CompilationError;
-import org.example.immutable.processor.test.CompilationErrorsSubject;
 import org.example.immutable.processor.test.TestCompiler;
 import org.example.immutable.processor.test.TestResources;
 import org.junit.jupiter.api.Test;
@@ -126,7 +125,7 @@ public final class NamedTypesTest {
                 .expectingCompilationFailure()
                 .expectingCompilationFailureWithoutProcessor()
                 .compile("test/method/error/TypeError.java");
-        CompilationErrorsSubject.assertThat(compilation.errors())
+        assertThat(CompilationError.fromCompilation(compilation))
                 .contains(CompilationError.of(8, "[@Immutable] type failed to compile"));
     }
 
@@ -139,7 +138,7 @@ public final class NamedTypesTest {
         Compilation compilation = TestCompiler.create(TestLiteProcessor.class)
                 .expectingCompilationFailure()
                 .compile(sourcePath);
-        CompilationErrorsSubject.assertThat(compilation.errors()).containsExactlyInAnyOrder(expectedError);
+        assertThat(CompilationError.fromCompilation(compilation)).containsExactlyInAnyOrder(expectedError);
     }
 
     @ProcessorScope
