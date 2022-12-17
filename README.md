@@ -357,17 +357,19 @@ where the Java object is a `String` containing the fully qualified name of the t
 @ProcessorScope
 public static final class TestLiteProcessor extends ImmutableBaseLiteProcessor {
 
+    private final Elements elementUtils;
     private final Filer filer;
 
     @Inject
-    TestLiteProcessor(Filer filer) {
+    TestLiteProcessor(Elements elementUtils, Filer filer) {
+        this.elementUtils = elementUtils;
         this.filer = filer;
     }
 
     @Override
     protected void process(TypeElement typeElement) {
         String qualifiedName = typeElement.getQualifiedName().toString();
-        TestResources.saveObject(filer, typeElement, qualifiedName);
+        TestResources.saveObject(filer, typeElement, elementUtils, qualifiedName);
     }
 }
 ```
@@ -395,7 +397,7 @@ See this snippet (again) from `ImmutableBaseLiteProcessorTest.TestLiteProcessor`
 @Override
 protected void process(TypeElement typeElement) {
     String qualifiedName = typeElement.getQualifiedName().toString();
-    TestResources.saveObject(filer, typeElement, qualifiedName);
+    TestResources.saveObject(filer, typeElement, elementUtils, qualifiedName);
 }
 ```
 
