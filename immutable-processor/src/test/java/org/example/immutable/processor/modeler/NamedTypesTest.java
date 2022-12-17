@@ -31,20 +31,23 @@ public final class NamedTypesTest {
 
     @Test
     public void create_TypeDeclared() throws Exception {
-        NamedType expectedType = NamedType.of(TopLevelType.of(String.class));
+        NamedType expectedType = NamedType.ofTopLevelType(TopLevelType.ofClass(String.class));
         create("test/method/TypeDeclared.java", expectedType);
     }
 
     @Test
     public void create_TypeDeclaredGeneric() throws Exception {
         NamedType expectedType = NamedType.of(
-                "%s<%s, %s>", TopLevelType.of(Map.class), TopLevelType.of(String.class), TopLevelType.of(String.class));
+                "%s<%s, %s>",
+                TopLevelType.ofClass(Map.class),
+                TopLevelType.ofClass(String.class),
+                TopLevelType.ofClass(String.class));
         create("test/method/TypeDeclaredGeneric.java", expectedType);
     }
 
     @Test
     public void create_TypeDeclaredNested() throws Exception {
-        NamedType expectedType = NamedType.of("%s.UncaughtExceptionHandler", TopLevelType.of(Thread.class));
+        NamedType expectedType = NamedType.of("%s.UncaughtExceptionHandler", TopLevelType.ofClass(Thread.class));
         create("test/method/TypeDeclaredNested.java", expectedType);
     }
 
@@ -52,7 +55,9 @@ public final class NamedTypesTest {
     public void create_TypeDeclaredNestedGenericInstance() throws Exception {
         NamedType expectedType = NamedType.of(
                 "%s<%s>.Inner<%s>",
-                TopLevelType.of("test.method", "Outer"), TopLevelType.of(String.class), TopLevelType.of(String.class));
+                TopLevelType.of("test.method", "Outer"),
+                TopLevelType.ofClass(String.class),
+                TopLevelType.ofClass(String.class));
         create("test/method/TypeDeclaredNestedGenericInstance.java", expectedType);
     }
 
@@ -60,7 +65,9 @@ public final class NamedTypesTest {
     public void create_TypeDeclaredNestedGenericStatic() throws Exception {
         NamedType expectedType = NamedType.of(
                 "%s.Entry<%s, %s>",
-                TopLevelType.of(Map.class), TopLevelType.of(String.class), TopLevelType.of(String.class));
+                TopLevelType.ofClass(Map.class),
+                TopLevelType.ofClass(String.class),
+                TopLevelType.ofClass(String.class));
         create("test/method/TypeDeclaredNestedGenericStatic.java", expectedType);
     }
 
@@ -69,8 +76,8 @@ public final class NamedTypesTest {
         NamedType expectedType = NamedType.of(
                 "%s<%s>.Inner<%s>",
                 TopLevelType.of("test.method", "OuterBase"),
-                TopLevelType.of(String.class),
-                TopLevelType.of(String.class));
+                TopLevelType.ofClass(String.class),
+                TopLevelType.ofClass(String.class));
         create("test/method/TypeDeclaredPathological.java", expectedType);
     }
 
@@ -88,21 +95,21 @@ public final class NamedTypesTest {
 
     @Test
     public void create_TypeWildcard() throws Exception {
-        NamedType expectedType = NamedType.of("%s<?>", TopLevelType.of(List.class));
+        NamedType expectedType = NamedType.of("%s<?>", TopLevelType.ofClass(List.class));
         create("test/method/TypeWildcard.java", expectedType);
     }
 
     @Test
     public void create_TypeWildcardExtends() throws Exception {
-        NamedType expectedType =
-                NamedType.of("%s<? extends %s>", TopLevelType.of(List.class), TopLevelType.of(Runnable.class));
+        NamedType expectedType = NamedType.of(
+                "%s<? extends %s>", TopLevelType.ofClass(List.class), TopLevelType.ofClass(Runnable.class));
         create("test/method/TypeWildcardExtends.java", expectedType);
     }
 
     @Test
     public void create_TypeWildcardSuper() throws Exception {
         NamedType expectedType =
-                NamedType.of("%s<? super %s>", TopLevelType.of(List.class), TopLevelType.of(Runnable.class));
+                NamedType.of("%s<? super %s>", TopLevelType.ofClass(List.class), TopLevelType.ofClass(Runnable.class));
         create("test/method/TypeWildcardSuper.java", expectedType);
     }
 

@@ -204,7 +204,7 @@ final class NamedTypes {
             TopLevelType topLevelType = topLevelTypeFactory
                     .create(topLevelTypeElement, sourceElement)
                     .orElse(ERROR_TOP_LEVEL_TYPE);
-            NamedType topLevelTypeModel = NamedType.of(topLevelType);
+            NamedType topLevelTypeModel = NamedType.ofTopLevelType(topLevelType);
             if (nestedTypeElements.isEmpty()) {
                 return topLevelTypeModel;
             }

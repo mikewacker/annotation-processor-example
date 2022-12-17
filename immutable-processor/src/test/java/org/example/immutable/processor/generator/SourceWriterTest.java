@@ -59,19 +59,19 @@ public final class SourceWriterTest {
         Set<String> packageTypes = Set.of("QualifiedTypes", "String", "Generated", "Override");
 
         List<String> typeVars = List.of();
-        NamedType implType = NamedType.of(rawImplType);
-        NamedType interfaceType = NamedType.of(rawInterfaceType);
+        NamedType implType = NamedType.ofTopLevelType(rawImplType);
+        NamedType interfaceType = NamedType.ofTopLevelType(rawInterfaceType);
 
         ImmutableType type = ImmutableType.of(rawImplType, packageTypes, typeVars, implType, interfaceType);
 
         // Create the members
         TopLevelType stringPackageImport = TopLevelType.of("test.source", "String");
-        TopLevelType stringImport = TopLevelType.of(String.class);
+        TopLevelType stringImport = TopLevelType.ofClass(String.class);
         TopLevelType generatedPackageImport = TopLevelType.of("test.source", "Generated");
 
-        ImmutableMember member1 = ImmutableMember.of("member1", NamedType.of(stringPackageImport));
-        ImmutableMember member2 = ImmutableMember.of("member2", NamedType.of(stringImport));
-        ImmutableMember member3 = ImmutableMember.of("member3", NamedType.of(generatedPackageImport));
+        ImmutableMember member1 = ImmutableMember.of("member1", NamedType.ofTopLevelType(stringPackageImport));
+        ImmutableMember member2 = ImmutableMember.of("member2", NamedType.ofTopLevelType(stringImport));
+        ImmutableMember member3 = ImmutableMember.of("member3", NamedType.ofTopLevelType(generatedPackageImport));
 
         // Create the implementation.
         return ImmutableImpl.of(type, List.of(member1, member2, member3));

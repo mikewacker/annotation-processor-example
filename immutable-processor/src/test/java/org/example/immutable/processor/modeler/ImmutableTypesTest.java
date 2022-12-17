@@ -34,8 +34,8 @@ public final class ImmutableTypesTest {
         TopLevelType rawImplType = TopLevelType.of("test.type", "ImmutableInterface");
         TopLevelType rawInterfaceType = TopLevelType.of("test.type", "Interface");
         List<String> typeVars = List.of();
-        NamedType implType = NamedType.of(rawImplType);
-        NamedType interfaceType = NamedType.of(rawInterfaceType);
+        NamedType implType = NamedType.ofTopLevelType(rawImplType);
+        NamedType interfaceType = NamedType.ofTopLevelType(rawInterfaceType);
         ImmutableType expectedType = ImmutableType.of(rawImplType, Set.of(), typeVars, implType, interfaceType);
         create("test/type/Interface.java", expectedType);
     }
@@ -59,9 +59,9 @@ public final class ImmutableTypesTest {
         NamedType implType = NamedType.of(
                 "%s<T extends %s & %s<%s>>",
                 rawImplType,
-                TopLevelType.of(Runnable.class),
-                TopLevelType.of(Callable.class),
-                TopLevelType.of(Void.class));
+                TopLevelType.ofClass(Runnable.class),
+                TopLevelType.ofClass(Callable.class),
+                TopLevelType.ofClass(Void.class));
         NamedType interfaceType = NamedType.of("%s<T>", rawInterfaceType);
         ImmutableType expectedType = ImmutableType.of(rawImplType, Set.of(), typeVars, implType, interfaceType);
         create("test/type/InterfaceGenericBounds.java", expectedType);
@@ -72,7 +72,7 @@ public final class ImmutableTypesTest {
         TopLevelType rawImplType = TopLevelType.of("test.type", "ImmutableInterfaceNested_Inner");
         TopLevelType topLevelInterfaceType = TopLevelType.of("test.type", "InterfaceNested");
         List<String> typeVars = List.of();
-        NamedType implType = NamedType.of(rawImplType);
+        NamedType implType = NamedType.ofTopLevelType(rawImplType);
         NamedType interfaceType = NamedType.of("%s.Inner", topLevelInterfaceType);
         ImmutableType expectedType = ImmutableType.of(rawImplType, Set.of(), typeVars, implType, interfaceType);
         create("test/type/InterfaceNested.java", "test/type/InterfaceNested_Inner.json", expectedType);

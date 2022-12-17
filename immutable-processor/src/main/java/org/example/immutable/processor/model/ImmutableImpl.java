@@ -47,7 +47,7 @@ public interface ImmutableImpl {
         // Get the type variables and types referenced in the source.
         Set<String> typeVars = Set.copyOf(type().typeVars());
         Set<TopLevelType> referencedTypes = new HashSet<>();
-        referencedTypes.addAll(Set.of(TopLevelType.of(Generated.class), TopLevelType.of(Override.class)));
+        referencedTypes.addAll(Set.of(TopLevelType.ofClass(Generated.class), TopLevelType.ofClass(Override.class)));
         referencedTypes.addAll(type().implType().args());
         referencedTypes.addAll(type().interfaceType().args());
         members().forEach(member -> referencedTypes.addAll(member.type().args()));
