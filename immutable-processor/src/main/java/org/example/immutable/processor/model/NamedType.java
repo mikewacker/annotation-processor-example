@@ -30,6 +30,20 @@ public interface NamedType {
         return of("%s", topLevelType);
     }
 
+    static NamedType ofBinaryName(String binaryName) {
+        int nestedIndex = binaryName.indexOf('$');
+        if (nestedIndex == -1) {
+            TopLevelType topLevelType = TopLevelType.ofQualifiedName(binaryName);
+            return NamedType.ofTopLevelType(topLevelType);
+        }
+
+        String topLevelBinaryName = binaryName.substring(0, nestedIndex);
+        TopLevelType topLevelType = TopLevelType.ofQualifiedName(topLevelBinaryName);
+        String nestedSuffix = binaryName.substring(nestedIndex).replace('$', '.');
+        String nameFormat = String.format("%%s%s", nestedSuffix);
+        return NamedType.of(nameFormat, topLevelType);
+    }
+
     /** Concatenates two types into a single type. */
     static NamedType concat(NamedType type1, NamedType type2) {
         return join(List.of(type1, type2), "", "", "");

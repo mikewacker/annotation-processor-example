@@ -18,7 +18,6 @@ import org.example.immutable.processor.modeler.ImmutableImplsTest;
 import org.example.immutable.processor.modeler.ImmutableMembersTest;
 import org.example.immutable.processor.modeler.ImmutableTypesTest;
 import org.example.immutable.processor.modeler.NamedTypesTest;
-import org.example.immutable.processor.modeler.TopLevelTypesTest;
 
 /**
  * Provides all test implementations of {@link LiteProcessor}
@@ -99,10 +98,4 @@ public interface TestProcessorModule {
     @IntoMap
     @LiteProcessorClassKey(NamedTypesTest.TestLiteProcessor.class)
     LiteProcessor bindNamedTypesTestLiteProcessor(NamedTypesTest.TestLiteProcessor liteProcessor);
-
-    @Binds
-    @ProcessorScope
-    @IntoMap
-    @LiteProcessorClassKey(TopLevelTypesTest.TestLiteProcessor.class)
-    LiteProcessor bindTopLevelTypesTestLiteProcessor(TopLevelTypesTest.TestLiteProcessor liteProcessor);
 }

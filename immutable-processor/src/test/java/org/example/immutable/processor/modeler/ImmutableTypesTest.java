@@ -11,6 +11,7 @@ import java.util.concurrent.Callable;
 import javax.annotation.processing.Filer;
 import javax.inject.Inject;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.util.Elements;
 import org.example.immutable.processor.base.ImmutableBaseLiteProcessor;
 import org.example.immutable.processor.base.ProcessorScope;
 import org.example.immutable.processor.model.ImmutableType;
@@ -68,14 +69,25 @@ public final class ImmutableTypesTest {
     }
 
     @Test
-    public void create_Nested() throws Exception {
+    public void create_InterfaceNested() throws Exception {
         TopLevelType rawImplType = TopLevelType.of("test.type", "ImmutableInterfaceNested_Inner");
         TopLevelType topLevelInterfaceType = TopLevelType.of("test.type", "InterfaceNested");
         List<String> typeVars = List.of();
         NamedType implType = NamedType.ofTopLevelType(rawImplType);
         NamedType interfaceType = NamedType.of("%s.Inner", topLevelInterfaceType);
         ImmutableType expectedType = ImmutableType.of(rawImplType, Set.of(), typeVars, implType, interfaceType);
-        create("test/type/InterfaceNested.java", "test/type/InterfaceNested_Inner.json", expectedType);
+        create("test/type/InterfaceNested.java", "test/type/InterfaceNested$Inner.json", expectedType);
+    }
+
+    @Test
+    public void create_InterfaceWithoutPackage() throws Exception {
+        TopLevelType rawImplType = TopLevelType.of("", "ImmutableInterfaceWithoutPackage");
+        TopLevelType rawInterfaceType = TopLevelType.of("", "InterfaceWithoutPackage");
+        List<String> typeVars = List.of();
+        NamedType implType = NamedType.ofTopLevelType(rawImplType);
+        NamedType interfaceType = NamedType.ofTopLevelType(rawInterfaceType);
+        ImmutableType expectedType = ImmutableType.of(rawImplType, Set.of(), typeVars, implType, interfaceType);
+        create("InterfaceWithoutPackage.java", expectedType);
     }
 
     private void create(String sourcePath, ImmutableType expectedType) throws Exception {
@@ -106,13 +118,6 @@ public final class ImmutableTypesTest {
     }
 
     @Test
-    public void error_InterfaceWithoutPackage() {
-        error(
-                "test/type/error/InterfaceWithoutPackage.java",
-                CompilationError.of(4, "[@Immutable] type must have a package"));
-    }
-
-    @Test
     public void error_InterfaceWithImpl() {
         error(
                 "test/type/error/InterfaceWithImpl.java",
@@ -137,17 +142,21 @@ public final class ImmutableTypesTest {
     public static final class TestLiteProcessor extends ImmutableBaseLiteProcessor {
 
         private final ImmutableTypes typeFactory;
+        private final Elements elementUtils;
         private final Filer filer;
 
         @Inject
-        TestLiteProcessor(ImmutableTypes types, Filer filer) {
+        TestLiteProcessor(ImmutableTypes types, Elements elementUtils, Filer filer) {
             this.typeFactory = types;
+            this.elementUtils = elementUtils;
             this.filer = filer;
         }
 
         @Override
         protected void process(TypeElement typeElement) {
-            typeFactory.create(typeElement).ifPresent(type -> TestResources.saveObject(filer, typeElement, type));
+            typeFactory
+                    .create(typeElement)
+                    .ifPresent(type -> TestResources.saveObject(filer, typeElement, elementUtils, type));
         }
     }
 }

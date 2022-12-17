@@ -21,6 +21,20 @@ public final class NamedTypeTest {
     }
 
     @Test
+    public void ofBinaryName_TopLevelType() {
+        NamedType type = NamedType.ofBinaryName(String.class.getName());
+        assertThat(type.nameFormat()).isEqualTo("%s");
+        assertThat(type.args()).containsExactly(TopLevelType.ofClass(String.class));
+    }
+
+    @Test
+    public void ofBinaryName_NestedType() {
+        NamedType type = NamedType.ofBinaryName(Map.Entry.class.getName());
+        assertThat(type.nameFormat()).isEqualTo("%s.Entry");
+        assertThat(type.args()).containsExactly(TopLevelType.ofClass(Map.class));
+    }
+
+    @Test
     public void concat_Types() {
         NamedType type1 = NamedType.of("Map");
         NamedType type2 =
