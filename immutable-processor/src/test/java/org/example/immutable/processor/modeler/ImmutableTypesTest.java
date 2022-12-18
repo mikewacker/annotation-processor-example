@@ -117,6 +117,20 @@ public final class ImmutableTypesTest {
     }
 
     @Test
+    public void error_InterfacePrivate() {
+        error(
+                "test/type/error/InterfacePrivate.java",
+                CompilationError.of(8, "[@Immutable] interface must not be privately visible"));
+    }
+
+    @Test
+    public void error_InterfacePrivateNested() {
+        error(
+                "test/type/error/InterfacePrivateNested.java",
+                CompilationError.of(10, "[@Immutable] interface must not be privately visible"));
+    }
+
+    @Test
     public void error_InterfaceWithImpl() {
         error(
                 "test/type/error/InterfaceWithImpl.java",
