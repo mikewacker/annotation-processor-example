@@ -6,6 +6,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
@@ -71,6 +73,7 @@ final class ImmutableTypes {
             return Optional.empty();
         }
 
+        checkIsNotPrivate(typeElement);
         TypeMirror rawTypeMirror = typeUtils.erasure(typeElement.asType());
         return typeFactory.create(rawTypeMirror, typeElement);
     }
@@ -190,6 +193,17 @@ final class ImmutableTypes {
         return !typeElement.getKind().isInterface()
                 ? errorReporter.error("type must be an interface", typeElement)
                 : true;
+    }
+
+    private boolean checkIsNotPrivate(TypeElement typeElement) {
+        for (Element element = typeElement;
+                element.getKind() != ElementKind.PACKAGE;
+                element = element.getEnclosingElement()) {
+            if (element.getModifiers().contains(Modifier.PRIVATE)) {
+                return errorReporter.error("interface must not be privately visible", typeElement);
+            }
+        }
+        return true;
     }
 
     /** Checks that the implementation type to be generated does not already exist. */
