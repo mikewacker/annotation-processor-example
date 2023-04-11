@@ -131,7 +131,7 @@ The annotation processor is split into two stages:
 A single line of code in `ImmutableLiteProcessor` runs both stages.
 
 ```java
-implFactory.create(typeElement).ifPresent(generator::generateSource);
+implFactory.create(typeElement).ifPresent(impl -> generator.generateSource(impl, typeElement));
 ```
 
 [`ImmutableImpl`](immutable-processor/src/main/java/org/example/immutable/processor/model/ImmutableImpl.java)
@@ -156,6 +156,20 @@ Annotation processors will use many objects that are provided as part of Java's
 
 [`ProcessorModule`](immutable-processor/src/main/java/org/example/immutable/processor/base/ProcessorModule.java)
 provides these objects; if you need them, you can put them in an `@Inject`'able constructor.
+
+### Incremental Annotation Processing
+
+This annotation processor generates a single output for each input. Thus, it can be configured to support
+[incremental annotation processing](https://docs.gradle.org/current/userguide/java_plugin.html#sec:incremental_annotation_processing).
+
+The following steps are needed to enable incremental annotation processing:
+
+- In the project with the annotation processor, add
+  [META-INF/gradle/incremental.annotation.processors](immutable-processor/src/main/resources/META-INF/gradle/incremental.annotation.processors)
+  to the `src/main/resources` folder.
+- Use `CLASS` or `RUNTIME` retention for the annotation. (The default is `CLASS`.)
+- Include the originating element (i.e., the annotated `TypeElement`) when creating a file via
+  [`Filer.createSourceFile()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/annotation/processing/Filer.html#createSourceFile(java.lang.CharSequence,javax.lang.model.element.Element...)).
 
 ### Reporting Compilation Errors
 

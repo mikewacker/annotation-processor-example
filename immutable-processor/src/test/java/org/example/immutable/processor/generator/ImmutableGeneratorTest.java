@@ -40,7 +40,7 @@ public final class ImmutableGeneratorTest {
 
         @Override
         protected void process(TypeElement typeElement) {
-            loadImmutableImpl(typeElement).ifPresent(generator::generateSource);
+            loadImmutableImpl(typeElement).ifPresent(impl -> generator.generateSource(impl, typeElement));
         }
 
         private Optional<ImmutableImpl> loadImmutableImpl(TypeElement typeElement) {
