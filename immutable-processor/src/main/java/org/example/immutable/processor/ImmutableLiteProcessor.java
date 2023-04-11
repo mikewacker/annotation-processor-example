@@ -29,7 +29,7 @@ final class ImmutableLiteProcessor extends ImmutableBaseLiteProcessor {
     @Override
     protected void process(TypeElement typeElement) {
         try {
-            implFactory.create(typeElement).ifPresent(generator::generateSource);
+            implFactory.create(typeElement).ifPresent(impl -> generator.generateSource(impl, typeElement));
         } catch (RuntimeException e) {
             String message = createErrorMessage(e, typeElement);
             errorReporter.error(message);

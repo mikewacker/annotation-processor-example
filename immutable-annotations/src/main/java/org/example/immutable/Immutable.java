@@ -2,8 +2,6 @@ package org.example.immutable;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
@@ -17,6 +15,5 @@ import java.lang.annotation.Target;
  * so the interface must provide a static factory method that invokes the constructor.</p>
  */
 @Target(ElementType.TYPE)
-@Retention(RetentionPolicy.SOURCE)
 @Documented
 public @interface Immutable {}
