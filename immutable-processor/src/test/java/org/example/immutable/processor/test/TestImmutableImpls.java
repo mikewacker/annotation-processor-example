@@ -1,7 +1,6 @@
 package org.example.immutable.processor.test;
 
 import java.util.List;
-import java.util.Set;
 import org.example.immutable.processor.model.ImmutableImpl;
 import org.example.immutable.processor.model.ImmutableMember;
 import org.example.immutable.processor.model.ImmutableType;
@@ -10,8 +9,6 @@ import org.example.immutable.processor.model.TopLevelType;
 
 /** Creates test {@link ImmutableImpl}'s. */
 public final class TestImmutableImpls {
-
-    private static Set<String> PACKAGE_TYPES = Set.of("Rectangle", "ColoredRectangle", "Empty");
 
     private static final ImmutableImpl RECTANGLE = createRectangle();
     private static final ImmutableImpl COLORED_RECTANGLE = createColoredRectangle();
@@ -41,7 +38,7 @@ public final class TestImmutableImpls {
         NamedType implType = NamedType.ofTopLevelType(rawImplType);
         NamedType interfaceType = NamedType.ofTopLevelType(rawInterfaceType);
 
-        ImmutableType type = ImmutableType.of(rawImplType, PACKAGE_TYPES, typeVars, implType, interfaceType);
+        ImmutableType type = ImmutableType.of(rawImplType, typeVars, implType, interfaceType);
 
         // Create the members.
         NamedType doubleType = NamedType.of("double");
@@ -62,7 +59,7 @@ public final class TestImmutableImpls {
         NamedType implType = NamedType.ofTopLevelType(rawImplType);
         NamedType interfaceType = NamedType.ofTopLevelType(rawInterfaceType);
 
-        ImmutableType type = ImmutableType.of(rawImplType, PACKAGE_TYPES, typeVars, implType, interfaceType);
+        ImmutableType type = ImmutableType.of(rawImplType, typeVars, implType, interfaceType);
 
         // Create the members.
         TopLevelType rectangleImport = TopLevelType.of("test", "Rectangle");
@@ -90,7 +87,7 @@ public final class TestImmutableImpls {
         NamedType implType = NamedType.ofTopLevelType(rawImplType);
         NamedType interfaceType = NamedType.ofTopLevelType(rawInterfaceType);
 
-        ImmutableType type = ImmutableType.of(rawImplType, PACKAGE_TYPES, typeVars, implType, interfaceType);
+        ImmutableType type = ImmutableType.of(rawImplType, typeVars, implType, interfaceType);
 
         // Create the implementation.
         return ImmutableImpl.of(type, List.of());

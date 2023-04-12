@@ -40,18 +40,15 @@ public interface ImmutableImpl {
     @Value.Derived
     @JsonIgnore
     default TypeQualifier typeQualifier() {
-        // Get the package information for the source.
         String packageName = type().rawImplType().packageName();
-        Set<String> packageTypes = type().packageTypes();
-
-        // Get the type variables and types referenced in the source.
         Set<String> typeVars = Set.copyOf(type().typeVars());
+
         Set<TopLevelType> referencedTypes = new HashSet<>();
         referencedTypes.addAll(Set.of(TopLevelType.ofClass(Generated.class), TopLevelType.ofClass(Override.class)));
         referencedTypes.addAll(type().implType().args());
         referencedTypes.addAll(type().interfaceType().args());
         members().forEach(member -> referencedTypes.addAll(member.type().args()));
 
-        return TypeQualifier.of(packageName, packageTypes, typeVars, referencedTypes);
+        return TypeQualifier.of(packageName, typeVars, referencedTypes);
     }
 }
