@@ -25,7 +25,6 @@ public final class ImmutableImplTest {
         TypeQualifier typeQualifier = TestImmutableImpls.coloredRectangle().typeQualifier();
         TypeQualifier expectedTypeQualifier = TypeQualifier.of(
                 "test",
-                Set.of("Rectangle", "ColoredRectangle", "Empty"),
                 Set.of(),
                 Set.of(
                         TopLevelType.ofClass(Generated.class),

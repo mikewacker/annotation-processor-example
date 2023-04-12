@@ -10,6 +10,8 @@ public interface QualifiedTypes {
     java.lang.String member2();
 
     Generated member3();
+
+    Override member4();
 }
 
 interface String {}

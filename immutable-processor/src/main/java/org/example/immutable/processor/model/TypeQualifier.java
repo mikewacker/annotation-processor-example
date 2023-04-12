@@ -17,11 +17,9 @@ import org.immutables.value.Value;
 @JsonDeserialize(as = ImmutableTypeQualifier.class)
 public interface TypeQualifier {
 
-    static TypeQualifier of(
-            String packageName, Set<String> packageTypes, Set<String> typeVars, Set<TopLevelType> referencedTypes) {
+    static TypeQualifier of(String packageName, Set<String> typeVars, Set<TopLevelType> referencedTypes) {
         return ImmutableTypeQualifier.builder()
                 .packageName(packageName)
-                .packageTypes(packageTypes)
                 .typeVars(typeVars)
                 .referencedTypes(referencedTypes)
                 .build();
@@ -29,9 +27,6 @@ public interface TypeQualifier {
 
     /** Gets the package name of the source. */
     String packageName();
-
-    /** Gets the simple name of all top-level types in the source's package. */
-    Set<String> packageTypes();
 
     /** Gets the type variables that are referenced in the source. */
     Set<String> typeVars();
@@ -68,14 +63,6 @@ public interface TypeQualifier {
         Stream<TopLevelType> typeVarConflicts =
                 referencedTypes().stream().filter(type -> typeVars().contains(type.simpleName()));
 
-        // Check that referenced types in the "java.lang" package do not conflict with a type in the source package.
-        // The types in the source's package do not need to be referenced for a conflict to exist.
-        Stream<TopLevelType> javaLangConflicts = referencedTypes().stream()
-                .filter(type -> type.packageName().equals("java.lang"))
-                .filter(type -> packageTypes().contains(type.simpleName()));
-
-        return Stream.of(typeConflicts, typeVarConflicts, javaLangConflicts)
-                .flatMap(s -> s)
-                .collect(Collectors.toSet());
+        return Stream.concat(typeConflicts, typeVarConflicts).collect(Collectors.toSet());
     }
 }

@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.testing.compile.Compilation;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import javax.annotation.processing.Filer;
 import javax.inject.Inject;
@@ -36,7 +35,7 @@ public final class ImmutableTypesTest {
         List<String> typeVars = List.of();
         NamedType implType = NamedType.ofTopLevelType(rawImplType);
         NamedType interfaceType = NamedType.ofTopLevelType(rawInterfaceType);
-        ImmutableType expectedType = ImmutableType.of(rawImplType, Set.of(), typeVars, implType, interfaceType);
+        ImmutableType expectedType = ImmutableType.of(rawImplType, typeVars, implType, interfaceType);
         create("test/type/Interface.java", expectedType);
     }
 
@@ -47,7 +46,7 @@ public final class ImmutableTypesTest {
         List<String> typeVars = List.of("T", "U");
         NamedType implType = NamedType.of("%s<T, U>", rawImplType);
         NamedType interfaceType = NamedType.of("%s<T, U>", rawInterfaceType);
-        ImmutableType expectedType = ImmutableType.of(rawImplType, Set.of(), typeVars, implType, interfaceType);
+        ImmutableType expectedType = ImmutableType.of(rawImplType, typeVars, implType, interfaceType);
         create("test/type/InterfaceGeneric.java", expectedType);
     }
 
@@ -63,7 +62,7 @@ public final class ImmutableTypesTest {
                 TopLevelType.ofClass(Callable.class),
                 TopLevelType.ofClass(Void.class));
         NamedType interfaceType = NamedType.of("%s<T>", rawInterfaceType);
-        ImmutableType expectedType = ImmutableType.of(rawImplType, Set.of(), typeVars, implType, interfaceType);
+        ImmutableType expectedType = ImmutableType.of(rawImplType, typeVars, implType, interfaceType);
         create("test/type/InterfaceGenericBounds.java", expectedType);
     }
 
@@ -74,7 +73,7 @@ public final class ImmutableTypesTest {
         List<String> typeVars = List.of();
         NamedType implType = NamedType.ofTopLevelType(rawImplType);
         NamedType interfaceType = NamedType.of("%s.Inner", topLevelInterfaceType);
-        ImmutableType expectedType = ImmutableType.of(rawImplType, Set.of(), typeVars, implType, interfaceType);
+        ImmutableType expectedType = ImmutableType.of(rawImplType, typeVars, implType, interfaceType);
         create("test/type/InterfaceNested.java", "test/type/InterfaceNested$Inner.json", expectedType);
     }
 
@@ -85,7 +84,7 @@ public final class ImmutableTypesTest {
         List<String> typeVars = List.of();
         NamedType implType = NamedType.ofTopLevelType(rawImplType);
         NamedType interfaceType = NamedType.ofTopLevelType(rawInterfaceType);
-        ImmutableType expectedType = ImmutableType.of(rawImplType, Set.of(), typeVars, implType, interfaceType);
+        ImmutableType expectedType = ImmutableType.of(rawImplType, typeVars, implType, interfaceType);
         create("InterfaceWithoutPackage.java", expectedType);
     }
 
@@ -148,7 +147,7 @@ public final class ImmutableTypesTest {
 
     /** Empties the package types for comparison purposes. */
     private ImmutableType normalizeType(ImmutableType type) {
-        return ImmutableType.of(type.rawImplType(), Set.of(), type.typeVars(), type.implType(), type.interfaceType());
+        return ImmutableType.of(type.rawImplType(), type.typeVars(), type.implType(), type.interfaceType());
     }
 
     @ProcessorScope

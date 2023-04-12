@@ -19,7 +19,6 @@ public final class TypeQualifierTest {
         TypeQualifier typeQualifier = TypeQualifier.of(
                 "test",
                 Set.of(),
-                Set.of(),
                 Set.of(
                         TopLevelType.ofClass(Generated.class),
                         TopLevelType.ofClass(List.class),
@@ -36,7 +35,6 @@ public final class TypeQualifierTest {
         TypeQualifier typeQualifier = TypeQualifier.of(
                 "test",
                 Set.of(),
-                Set.of(),
                 Set.of(
                         TopLevelType.ofClass(String.class),
                         TopLevelType.ofClass(List.class),
@@ -47,10 +45,7 @@ public final class TypeQualifierTest {
     @Test
     public void importedTypes_DoNotImportQualifiedTypes() {
         TypeQualifier typeQualifier = TypeQualifier.of(
-                "test",
-                Set.of(),
-                Set.of(),
-                Set.of(TopLevelType.of("test.sub1", "Type"), TopLevelType.of("test.sub2", "Type")));
+                "test", Set.of(), Set.of(TopLevelType.of("test.sub1", "Type"), TopLevelType.of("test.sub2", "Type")));
         assertThat(typeQualifier.importedTypes()).isEmpty();
     }
 
@@ -58,7 +53,6 @@ public final class TypeQualifierTest {
     public void qualifiedTypes_TypeConflictsWithTypeNotInSourcePackage() {
         TypeQualifier typeQualifier = TypeQualifier.of(
                 "test",
-                Set.of(),
                 Set.of(),
                 Set.of(
                         TopLevelType.ofClass(List.class),
@@ -71,29 +65,21 @@ public final class TypeQualifierTest {
     @Test
     public void qualifiedTypes_TypeConflictsWithTypeInSourcePackage() {
         TypeQualifier typeQualifier = TypeQualifier.of(
-                "test", Set.of(), Set.of(), Set.of(TopLevelType.ofClass(List.class), TopLevelType.of("test", "List")));
+                "test", Set.of(), Set.of(TopLevelType.ofClass(List.class), TopLevelType.of("test", "List")));
         assertThat(typeQualifier.qualifiedTypes()).containsExactlyInAnyOrder(TopLevelType.ofClass(List.class));
     }
 
     @Test
     public void qualifiedTypes_TypeNotInSourcePackageConflictsWithTypeVariable() {
         TypeQualifier typeQualifier =
-                TypeQualifier.of("test", Set.of(), Set.of("String"), Set.of(TopLevelType.ofClass(String.class)));
+                TypeQualifier.of("test", Set.of("String"), Set.of(TopLevelType.ofClass(String.class)));
         assertThat(typeQualifier.qualifiedTypes()).containsExactlyInAnyOrder(TopLevelType.ofClass(String.class));
     }
 
     @Test
     public void qualifiedTypes_TypeInSourcePackageConflictsWithTypeVariable() {
-        TypeQualifier typeQualifier =
-                TypeQualifier.of("test", Set.of(), Set.of("T"), Set.of(TopLevelType.of("Type", "T")));
+        TypeQualifier typeQualifier = TypeQualifier.of("test", Set.of("T"), Set.of(TopLevelType.of("Type", "T")));
         assertThat(typeQualifier.qualifiedTypes()).containsExactlyInAnyOrder(TopLevelType.of("Type", "T"));
-    }
-
-    @Test
-    public void qualifiedTypes_JavaLangTypeConflictsWithTypeInSourcePackage() {
-        TypeQualifier typeQualifier =
-                TypeQualifier.of("test", Set.of("Override"), Set.of(), Set.of(TopLevelType.ofClass(Override.class)));
-        assertThat(typeQualifier.qualifiedTypes()).containsExactlyInAnyOrder(TopLevelType.ofClass(Override.class));
     }
 
     @Test

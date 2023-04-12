@@ -2,14 +2,12 @@ package org.example.immutable.processor.modeler;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.Name;
-import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.type.TypeMirror;
@@ -53,7 +51,6 @@ final class ImmutableTypes {
             NamedType rawInterfaceType = maybeRawInterfaceType.get();
 
             TopLevelType rawImplType = createRawImplType(rawInterfaceType, typeElement);
-            Set<String> packageTypes = createPackageTypes(typeElement);
 
             // Create and validate the (possibly generic) types.
             List<? extends TypeParameterElement> typeParamElements = typeElement.getTypeParameters();
@@ -62,7 +59,7 @@ final class ImmutableTypes {
             NamedType implType = createImplType(rawImplType, typeParamElements);
 
             // Create the immutable type.
-            ImmutableType type = ImmutableType.of(rawImplType, packageTypes, typeVars, implType, interfaceType);
+            ImmutableType type = ImmutableType.of(rawImplType, typeVars, implType, interfaceType);
             return errorTracker.checkNoErrors(type);
         }
     }
@@ -111,15 +108,6 @@ final class ImmutableTypes {
         TopLevelType rawImplType = TopLevelType.of(rawFlatInterfaceType.packageName(), simpleImplName);
         checkImplTypeDoesNotExist(rawImplType, sourceElement);
         return rawImplType;
-    }
-
-    /** Creates a list of top-level types in the same package as this type. */
-    private Set<String> createPackageTypes(TypeElement typeElement) {
-        PackageElement packageElement = elementUtils.getPackageOf(typeElement);
-        return packageElement.getEnclosedElements().stream()
-                .map(Element::getSimpleName)
-                .map(Name::toString)
-                .collect(Collectors.toSet());
     }
 
     /** Gets a list of all type variables. */

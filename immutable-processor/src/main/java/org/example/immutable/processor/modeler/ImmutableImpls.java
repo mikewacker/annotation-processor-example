@@ -2,7 +2,6 @@ package org.example.immutable.processor.modeler;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import javax.inject.Inject;
 import javax.lang.model.element.TypeElement;
 import org.example.immutable.processor.base.ProcessorScope;
@@ -18,7 +17,7 @@ import org.example.immutable.processor.model.TopLevelType;
 public final class ImmutableImpls {
 
     private static final ImmutableType ERROR_TYPE =
-            ImmutableType.of(TopLevelType.of("?", "?"), Set.of(), List.of(), NamedType.of("?"), NamedType.of("?"));
+            ImmutableType.of(TopLevelType.of("?", "?"), List.of(), NamedType.of("?"), NamedType.of("?"));
     private static final ImmutableMember ERROR_MEMBER = ImmutableMember.of("?", NamedType.of("?"));
 
     private final ImmutableTypes typeFactory;
