@@ -9,7 +9,6 @@ repositories {
 }
 
 dependencies {
-    // You may need to disable ErrorProne if you want to run './gradlew -Dorg.gradle.debug=true --no-daemon ...'.
     errorprone('com.google.errorprone:error_prone_core')
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api'
@@ -28,6 +27,13 @@ tasks.withType(JavaCompile) {
     options.release = 17
     options.compilerArgs << '-Werror'
     options.errorprone.disableWarningsInGeneratedCode = true
+
+    // The Error Prone plugin uses a forking compiler for JDK 16+.
+    // The 'org.gradle.debugfork' option has been added to enable debugging on the forked process.
+    if (System.properties.getProperty('org.gradle.debugfork', 'false').toBoolean()) {
+        // Use port 5006 on the off chance that the original process is listening for a debugger on port 5005.
+        options.forkOptions.jvmArgs << '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5006'
+    }
 }
 
 tasks.named('test') {
