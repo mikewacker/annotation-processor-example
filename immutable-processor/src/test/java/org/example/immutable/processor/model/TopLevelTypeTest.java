@@ -6,6 +6,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.example.immutable.processor.test.TestImmutableImpls;
 import org.example.immutable.processor.test.TestResources;
+import org.example.processor.type.ImportableType;
 import org.junit.jupiter.api.Test;
 
 public final class TopLevelTypeTest {
@@ -41,6 +42,12 @@ public final class TopLevelTypeTest {
     public void qualifiedName_NoPackage() {
         TopLevelType type = TopLevelType.of("", "TypeWithoutPackage");
         assertThat(type.qualifiedName()).isEqualTo("TypeWithoutPackage");
+    }
+
+    @Test
+    public void toImportableType() {
+        TopLevelType type = TopLevelType.ofClass(String.class);
+        assertThat(type.toImportableType()).isEqualTo(ImportableType.ofClass(String.class));
     }
 
     @Test
