@@ -11,6 +11,7 @@ dependencies {
     annotationProcessor 'org.immutables:value'
 
     implementation project(':immutable-annotations')
+    implementation project(':processor')
     implementation 'com.google.dagger:dagger'
     implementation 'com.google.guava:guava'
     implementation 'javax.inject:javax.inject'

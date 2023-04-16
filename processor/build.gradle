@@ -1,0 +1,12 @@
+plugins {
+    id 'org.example.immutable.java-conventions'
+    id 'java-library'
+}
+
+dependencies {
+    compileOnly 'org.immutables:value-annotations'
+    annotationProcessor 'org.immutables:value'
+
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.google.guava:guava'
+}

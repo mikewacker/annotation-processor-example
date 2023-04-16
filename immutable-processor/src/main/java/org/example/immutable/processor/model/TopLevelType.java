@@ -3,6 +3,7 @@ package org.example.immutable.processor.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.example.processor.type.ImportableType;
 import org.immutables.value.Value;
 
 /** Raw top-level type. */
@@ -42,5 +43,11 @@ public interface TopLevelType {
     /** Gets the fully qualified name of the type. */
     default String qualifiedName() {
         return !packageName().isEmpty() ? String.format("%s.%s", packageName(), simpleName()) : simpleName();
+    }
+
+    @Value.Derived
+    @JsonIgnore
+    default ImportableType toImportableType() {
+        return ImportableType.of(qualifiedName());
     }
 }
