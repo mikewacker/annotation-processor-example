@@ -2,7 +2,7 @@ package org.example.immutable.processor.generator;
 
 import java.io.PrintWriter;
 import java.io.Writer;
-import java.util.Set;
+import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.processing.Generated;
 import org.example.immutable.processor.ImmutableProcessor;
@@ -11,6 +11,7 @@ import org.example.immutable.processor.model.ImmutableMember;
 import org.example.immutable.processor.model.ImmutableType;
 import org.example.immutable.processor.model.NamedType;
 import org.example.immutable.processor.model.TopLevelType;
+import org.example.processor.type.ImportableType;
 
 /** Writes the source code for an {@link ImmutableImpl}, using an open {@link Writer}. */
 final class SourceWriter {
@@ -21,7 +22,6 @@ final class SourceWriter {
 
     private final PrintWriter writer;
     private final ImmutableImpl impl;
-    private final Set<TopLevelType> qualifiedTypes;
 
     /** Writes the source code for the provided {@link ImmutableImpl}. */
     public static void writeSource(Writer writer, ImmutableImpl impl) {
@@ -34,7 +34,6 @@ final class SourceWriter {
     private SourceWriter(PrintWriter writer, ImmutableImpl impl) {
         this.writer = writer;
         this.impl = impl;
-        qualifiedTypes = impl.typeQualifier().qualifiedTypes();
     }
 
     /** Writes the source code. */
@@ -55,15 +54,15 @@ final class SourceWriter {
     /** Writes the package and the imports. */
     private void writePackageAndImports() {
         String packageName = impl.type().rawImplType().packageName();
-        Set<TopLevelType> importedTypes = impl.typeQualifier().importedTypes();
+        List<ImportableType> importDeclarations = impl.importManager().getImportDeclarations();
 
         if (!packageName.isEmpty()) {
             writer.format("package %s;", packageName).println();
             writer.println();
         }
 
-        if (!importedTypes.isEmpty()) {
-            importedTypes.forEach(
+        if (!importDeclarations.isEmpty()) {
+            importDeclarations.forEach(
                     type -> writer.format("import %s;", type.qualifiedName()).println());
             writer.println();
         }
@@ -122,11 +121,11 @@ final class SourceWriter {
 
     /** Gets the type's name, qualifying types as appropriate. */
     private String name(NamedType type) {
-        return type.name(qualifiedTypes);
+        return type.name(impl.importManager());
     }
 
     /** Gets the type's name for a declaration, qualifying types as appropriate. */
     private String declarationName(NamedType type) {
-        return type.declarationName(qualifiedTypes);
+        return type.declarationName(impl.importManager());
     }
 }
