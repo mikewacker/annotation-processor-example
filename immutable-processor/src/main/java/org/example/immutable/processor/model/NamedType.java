@@ -4,8 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
+import org.example.processor.source.SourceGenerator;
+import org.example.processor.type.ImportableType;
 import org.immutables.value.Value;
 
 /**
@@ -85,27 +86,20 @@ public interface NamedType {
     }
 
     /** Gets the type's name, using fully qualified names for the provided top-level types. */
-    default String name(Set<TopLevelType> qualifiedTypes) {
-        if (qualifiedTypes.isEmpty()) {
-            return name();
-        }
-
+    default String name(SourceGenerator<ImportableType> typeNamer) {
         Object[] nameArgs = args().stream()
-                .map(type -> qualifiedTypes.contains(type) ? type.qualifiedName() : type.simpleName())
+                .map(TopLevelType::toImportableType)
+                .map(typeNamer::toSource)
                 .toArray(String[]::new);
         return String.format(nameFormat(), nameArgs);
     }
 
     /** Gets the type's name for a declaration, using fully qualified names for the provided top-level types. */
-    default String declarationName(Set<TopLevelType> qualifiedTypes) {
-        if (qualifiedTypes.isEmpty()) {
-            return name();
-        }
-
+    default String declarationName(SourceGenerator<ImportableType> typeNamer) {
         TopLevelType rawType = args().get(0);
         String nameFormat =
                 String.format("%s%s", rawType.simpleName(), nameFormat().substring(2));
         NamedType declarationType = NamedType.of(nameFormat, args().subList(1, args().size()));
-        return declarationType.name(qualifiedTypes);
+        return declarationType.name(typeNamer);
     }
 }

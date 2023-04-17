@@ -4,11 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.example.immutable.processor.test.TestImmutableImpls;
 import org.example.immutable.processor.test.TestResources;
+import org.example.processor.type.ImportableType;
 import org.junit.jupiter.api.Test;
 
 public final class NamedTypeTest {
@@ -85,27 +86,33 @@ public final class NamedTypeTest {
     @Test
     public void name_WithQualifiedTypes() {
         NamedType type = NamedType.of(
-                "%s.Entry<%s, %s>",
+                "%s<%s, %s>",
                 TopLevelType.ofClass(Map.class),
                 TopLevelType.ofClass(String.class),
                 TopLevelType.ofClass(String.class));
-        Set<TopLevelType> qualifiedTypes = Set.of(TopLevelType.ofClass(String.class));
-        String name = type.name(qualifiedTypes);
-        assertThat(name).isEqualTo("Map.Entry<java.lang.String, java.lang.String>");
+        String name = type.name(NamedTypeTest::generateSource);
+        assertThat(name).isEqualTo("java.util.Map<String, String>");
     }
 
     @Test
     public void declarationName() {
-        TopLevelType rawType = TopLevelType.of("test", "T");
-        NamedType type = NamedType.of("%s<T extends %s>", rawType, rawType);
-        Set<TopLevelType> qualifiedTypes = Set.of(rawType);
-        String declarationName = type.declarationName(qualifiedTypes);
-        assertThat(declarationName).isEqualTo("T<T extends test.T>");
+        NamedType type = NamedType.of(
+                "%s<%s, %s>",
+                TopLevelType.ofClass(Map.class),
+                TopLevelType.ofClass(String.class),
+                TopLevelType.ofClass(String.class));
+        String declarationName = type.declarationName(NamedTypeTest::generateSource);
+        assertThat(declarationName).isEqualTo("Map<String, String>");
     }
 
     @Test
     public void serializeAndDeserialize() throws JsonProcessingException {
         NamedType type = TestImmutableImpls.rectangle().type().implType();
         TestResources.serializeAndDeserialize(type, new TypeReference<>() {});
+    }
+
+    private static void generateSource(PrintWriter writer, ImportableType type) {
+        String name = type.equals(ImportableType.ofClass(String.class)) ? type.simpleName() : type.qualifiedName();
+        writer.write(name);
     }
 }
