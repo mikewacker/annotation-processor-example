@@ -12,6 +12,12 @@ import org.junit.jupiter.api.Test;
 public final class ImportableTypeTest {
 
     @Test
+    public void ofPackageAndClass() {
+        ImportableType type = ImportableType.ofPackageAndClass("test", "TopLevel.Nested");
+        assertThat(type.binaryName()).isEqualTo("test.TopLevel$Nested");
+    }
+
+    @Test
     public void ofClass() {
         ImportableType type = ImportableType.ofClass(Map.Entry.class);
         assertThat(type.binaryName()).isEqualTo("java.util.Map$Entry");

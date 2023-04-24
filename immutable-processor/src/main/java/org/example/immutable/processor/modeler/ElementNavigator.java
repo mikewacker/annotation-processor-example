@@ -15,7 +15,7 @@ import org.example.immutable.processor.base.ProcessorScope;
 @ProcessorScope
 final class ElementNavigator {
 
-    private static final String OBJECT_NAME = Object.class.getCanonicalName();
+    private static final String OBJECT_CANONICAL_NAME = Object.class.getCanonicalName();
 
     private final Elements elementUtils;
 
@@ -36,7 +36,7 @@ final class ElementNavigator {
 
     private boolean isNotBuiltInMethod(ExecutableElement methodElement) {
         TypeElement typeElement = (TypeElement) methodElement.getEnclosingElement();
-        return !typeElement.getQualifiedName().contentEquals(OBJECT_NAME);
+        return !typeElement.getQualifiedName().contentEquals(OBJECT_CANONICAL_NAME);
     }
 
     private boolean isInstanceMethod(ExecutableElement methodElement) {
