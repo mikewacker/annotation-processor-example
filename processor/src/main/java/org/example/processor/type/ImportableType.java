@@ -24,6 +24,13 @@ public interface ImportableType extends Comparable<ImportableType> {
         return ImmutableImportableType.builder().binaryName(binaryName).build();
     }
 
+    /** Creates an {@link ImportableType} from a package and class name, using '.' to delimit nested classes. */
+    static ImportableType ofPackageAndClass(String packageName, String className) {
+        String binaryClassName = className.replace('.', '$');
+        String binaryName = String.format("%s.%s", packageName, binaryClassName);
+        return of(binaryName);
+    }
+
     /** Creates an {@link ImportableType} from the {@link Class}. */
     static ImportableType ofClass(Class<?> clazz) {
         return of(clazz.getName());
