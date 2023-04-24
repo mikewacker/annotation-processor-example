@@ -5,9 +5,11 @@ plugins {
 
 dependencies {
     compileOnly 'com.google.auto.service:auto-service-annotations'
+    compileOnly 'net.ltgt.gradle.incap:incap'
     compileOnly 'org.immutables:value-annotations'
     annotationProcessor 'com.google.auto.service:auto-service'
     annotationProcessor 'com.google.dagger:dagger-compiler'
+    annotationProcessor 'net.ltgt.gradle.incap:incap-processor'
     annotationProcessor 'org.immutables:value'
 
     implementation project(':immutable-annotations')
@@ -17,6 +19,7 @@ dependencies {
     implementation 'javax.inject:javax.inject'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
 
+    testCompileOnly 'net.ltgt.gradle.incap:incap'
     testCompileOnly 'org.immutables:value-annotations'
     testAnnotationProcessor 'com.google.dagger:dagger-compiler'
     testAnnotationProcessor 'org.immutables:value-processor'

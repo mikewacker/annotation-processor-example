@@ -12,6 +12,7 @@ com.google.guava:guava:31.1-jre (6 constraints: e95885a7)
 com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava (1 constraints: bd17c918)
 com.google.j2objc:j2objc-annotations:1.3 (2 constraints: 9316c710)
 javax.inject:javax.inject:1 (2 constraints: 490ee940)
+net.ltgt.gradle.incap:incap:1.0.0 (1 constraints: 0305f035)
 org.checkerframework:checker-qual:3.12.0 (3 constraints: 14226d22)
 org.immutables:value-annotations:2.9.2 (1 constraints: 0f051236)
 
