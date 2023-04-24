@@ -5,6 +5,8 @@ import dagger.BindsInstance;
 import dagger.Component;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.Processor;
+import net.ltgt.gradle.incap.IncrementalAnnotationProcessor;
+import net.ltgt.gradle.incap.IncrementalAnnotationProcessorType;
 import org.example.immutable.Immutable;
 import org.example.immutable.processor.base.ImmutableBaseProcessor;
 import org.example.immutable.processor.base.LiteProcessor;
@@ -13,6 +15,7 @@ import org.example.immutable.processor.base.ProcessorScope;
 
 /** Processes interfaces annotated with {@link Immutable}. */
 @AutoService(Processor.class)
+@IncrementalAnnotationProcessor(IncrementalAnnotationProcessorType.ISOLATING)
 public final class ImmutableProcessor extends ImmutableBaseProcessor {
 
     @Override

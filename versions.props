@@ -5,6 +5,7 @@ com.google.errorprone:error_prone_core = 2.16
 com.google.guava:* = 31.1-jre
 com.google.testing.compile:compile-testing = 0.19
 javax.inject:javax.inject = 1
+net.ltgt.gradle.incap:* = 1.0.0
 org.assertj:assertj-core = 3.23.1
 org.immutables:* = 2.9.2
 org.junit.jupiter:* = 5.9.1

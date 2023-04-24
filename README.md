@@ -167,10 +167,8 @@ This annotation processor generates a single output for each input. Thus, it can
 
 The following steps are needed to enable incremental annotation processing:
 
-- In the project with the annotation processor, add
-  [META-INF/gradle/incremental.annotation.processors](immutable-processor/src/main/resources/META-INF/gradle/incremental.annotation.processors)
-  to the `src/main/resources` folder.
 - Use `CLASS` or `RUNTIME` retention for the annotation. (The default is `CLASS`.)
+- Use [`gradle-incap-helper`](https://github.com/tbroyer/gradle-incap-helper) to enable incremental processing.
 - Include the originating element (i.e., the annotated `TypeElement`) when creating a file via
   [`Filer.createSourceFile()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/annotation/processing/Filer.html#createSourceFile(java.lang.CharSequence,javax.lang.model.element.Element...)).
 
