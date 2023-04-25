@@ -97,11 +97,8 @@ class ImmutableRectangle implements Rectangle {
 
 - `./gradlew -Dorg.gradle.debug=true --no-daemon :immutable-example:clean :immutable-example:compileJava`
   - From there, you can attach a debugger to Gradle.
-  - If you use a [forking compiler](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:fork),
-    however, you will need to [set up debugging](buildSrc/src/main/groovy/org.example.immutable.java-conventions.gradle)
-    on the forked process.
-    - This project uses the Error Prone plugin, which uses a forking compiler,
-      so the `org.gradle.debugfork` option was added to enable debugging on the forked process.
+  - If you use the [Gradle Error Prone plugin](https://github.com/tbroyer/gradle-errorprone-plugin),
+    you will also need to [add some JVM args](gradle.properties).
 - You could also debug a test written with [Compile Testing](https://github.com/google/compile-testing).
 
 ### Where can the generated sources be found?
