@@ -64,7 +64,6 @@ public final class ImmutableMembersTest {
 
         private final ImmutableMembers memberFactory;
         private final ElementNavigator navigator;
-        private final Elements elementUtils;
         private final Filer filer;
 
         @Inject
@@ -72,7 +71,6 @@ public final class ImmutableMembersTest {
                 ImmutableMembers memberFactory, ElementNavigator navigator, Elements elementUtils, Filer filer) {
             this.memberFactory = memberFactory;
             this.navigator = navigator;
-            this.elementUtils = elementUtils;
             this.filer = filer;
         }
 
@@ -82,7 +80,7 @@ public final class ImmutableMembersTest {
                     navigator.getMethodsToImplement(typeElement).findFirst().get();
             memberFactory
                     .create(methodElement)
-                    .ifPresent(member -> TestResources.saveObject(filer, typeElement, elementUtils, member));
+                    .ifPresent(member -> TestResources.saveObject(filer, typeElement, member));
         }
     }
 }

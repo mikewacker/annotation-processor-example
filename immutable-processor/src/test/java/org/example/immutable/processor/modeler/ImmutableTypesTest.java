@@ -9,7 +9,6 @@ import java.util.concurrent.Callable;
 import javax.annotation.processing.Filer;
 import javax.inject.Inject;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.util.Elements;
 import org.example.immutable.processor.base.ImmutableBaseLiteProcessor;
 import org.example.immutable.processor.base.ProcessorScope;
 import org.example.immutable.processor.model.ImmutableType;
@@ -74,7 +73,7 @@ public final class ImmutableTypesTest {
         NamedType implType = NamedType.ofTopLevelType(rawImplType);
         NamedType interfaceType = NamedType.of("%s.Inner", topLevelInterfaceType);
         ImmutableType expectedType = ImmutableType.of(rawImplType, typeVars, implType, interfaceType);
-        create("test/type/InterfaceNested.java", "test/type/InterfaceNested$Inner.json", expectedType);
+        create("test/type/InterfaceNested.java", expectedType);
     }
 
     @Test
@@ -91,13 +90,6 @@ public final class ImmutableTypesTest {
     private void create(String sourcePath, ImmutableType expectedType) throws Exception {
         Compilation compilation = TestCompiler.create(TestLiteProcessor.class).compile(sourcePath);
         ImmutableType type = TestResources.loadObjectForSource(compilation, sourcePath, new TypeReference<>() {});
-        assertThat(normalizeType(type)).isEqualTo(normalizeType(expectedType));
-    }
-
-    private void create(String sourcePath, String resourcePath, ImmutableType expectedType) throws Exception {
-        Compilation compilation = TestCompiler.create(TestLiteProcessor.class).compile(sourcePath);
-        ImmutableType type =
-                TestResources.loadObjectFromGeneratedResource(compilation, resourcePath, new TypeReference<>() {});
         assertThat(normalizeType(type)).isEqualTo(normalizeType(expectedType));
     }
 
@@ -154,21 +146,17 @@ public final class ImmutableTypesTest {
     public static final class TestLiteProcessor extends ImmutableBaseLiteProcessor {
 
         private final ImmutableTypes typeFactory;
-        private final Elements elementUtils;
         private final Filer filer;
 
         @Inject
-        TestLiteProcessor(ImmutableTypes types, Elements elementUtils, Filer filer) {
+        TestLiteProcessor(ImmutableTypes types, Filer filer) {
             this.typeFactory = types;
-            this.elementUtils = elementUtils;
             this.filer = filer;
         }
 
         @Override
         protected void process(TypeElement typeElement) {
-            typeFactory
-                    .create(typeElement)
-                    .ifPresent(type -> TestResources.saveObject(filer, typeElement, elementUtils, type));
+            typeFactory.create(typeElement).ifPresent(type -> TestResources.saveObject(filer, typeElement, type));
         }
     }
 }

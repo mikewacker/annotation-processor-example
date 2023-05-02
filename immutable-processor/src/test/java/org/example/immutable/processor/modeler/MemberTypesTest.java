@@ -121,14 +121,12 @@ public final class MemberTypesTest {
 
         private final MemberTypes typeFactory;
         private final ElementNavigator navigator;
-        private final Elements elementUtils;
         private final Filer filer;
 
         @Inject
         TestLiteProcessor(MemberTypes types, ElementNavigator navigator, Elements elementUtils, Filer filer) {
             this.typeFactory = types;
             this.navigator = navigator;
-            this.elementUtils = elementUtils;
             this.filer = filer;
         }
 
@@ -139,7 +137,7 @@ public final class MemberTypesTest {
             TypeMirror returnType = sourceElement.getReturnType();
             typeFactory
                     .create(returnType, sourceElement)
-                    .ifPresent(type -> TestResources.saveObject(filer, typeElement, elementUtils, type));
+                    .ifPresent(type -> TestResources.saveObject(filer, typeElement, type));
         }
     }
 }
