@@ -7,7 +7,6 @@ import com.google.testing.compile.Compilation;
 import javax.annotation.processing.Filer;
 import javax.inject.Inject;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.util.Elements;
 import org.example.immutable.processor.base.ImmutableBaseLiteProcessor;
 import org.example.immutable.processor.base.ProcessorScope;
 import org.example.immutable.processor.model.ImmutableImpl;
@@ -72,21 +71,17 @@ public final class ImmutableImplsTest {
     public static final class TestLiteProcessor extends ImmutableBaseLiteProcessor {
 
         private final ImmutableImpls implFactory;
-        private final Elements elementUtils;
         private final Filer filer;
 
         @Inject
-        TestLiteProcessor(ImmutableImpls implFactory, Elements elementUtils, Filer filer) {
+        TestLiteProcessor(ImmutableImpls implFactory, Filer filer) {
             this.implFactory = implFactory;
-            this.elementUtils = elementUtils;
             this.filer = filer;
         }
 
         @Override
         protected void process(TypeElement typeElement) {
-            implFactory
-                    .create(typeElement)
-                    .ifPresent(impl -> TestResources.saveObject(filer, typeElement, elementUtils, impl));
+            implFactory.create(typeElement).ifPresent(impl -> TestResources.saveObject(filer, typeElement, impl));
         }
     }
 }

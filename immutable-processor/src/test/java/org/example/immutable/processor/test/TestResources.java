@@ -13,11 +13,12 @@ import java.io.Reader;
 import java.io.Writer;
 import java.util.Optional;
 import javax.annotation.processing.Filer;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.util.Elements;
 import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
+import org.example.processor.type.ImportableType;
 
 /**
  * Saves Java objects to JSON resource files during annotation processing, and loads those objects as well.
@@ -41,10 +42,14 @@ public final class TestResources {
         assertThat(deserializedT).isEqualTo(t);
     }
 
-    /** Saves a corresponding object for the type to a resource file during annotation processing. */
-    public static void saveObject(Filer filer, TypeElement typeElement, Elements elementUtils, Object object) {
+    /**
+     * Saves a corresponding object for the type to a resource file during annotation processing.
+     *
+     * <p>For nested types, the resource file is associated with the top-level type.</p>
+     */
+    public static void saveObject(Filer filer, TypeElement typeElement, Object object) {
         try {
-            FileObject resourceFile = createResourceFile(filer, typeElement, elementUtils);
+            FileObject resourceFile = createResourceFile(filer, typeElement);
             saveObject(resourceFile, object);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -55,12 +60,6 @@ public final class TestResources {
     public static <T> T loadObjectForSource(Compilation compilation, String sourcePath, TypeReference<T> type)
             throws Exception {
         String resourcePath = sourcePath.replace(".java", ".json");
-        return loadObjectFromGeneratedResource(compilation, resourcePath, type);
-    }
-
-    /** Loads an object from a generated resource file. */
-    public static <T> T loadObjectFromGeneratedResource(
-            Compilation compilation, String resourcePath, TypeReference<T> type) throws Exception {
         FileObject resourceFile = getResourceFile(compilation, resourcePath);
         return loadObject(resourceFile, type);
     }
@@ -74,16 +73,17 @@ public final class TestResources {
     }
 
     /** Creates a resource file for the type during annotation processing. */
-    private static FileObject createResourceFile(Filer filer, TypeElement typeElement, Elements elementUtils)
-            throws IOException {
-        String binaryName = elementUtils.getBinaryName(typeElement).toString();
-        int lastDotIndex = binaryName.lastIndexOf('.');
-        int packageEndIndex = (lastDotIndex != -1) ? lastDotIndex : 0;
-        int classIndex = (lastDotIndex != -1) ? lastDotIndex + 1 : 0;
-        String packageName = binaryName.substring(0, packageEndIndex);
-        String className = binaryName.substring(classIndex);
-        String fileName = String.format("%s.json", className);
-        return filer.createResource(StandardLocation.SOURCE_OUTPUT, packageName, fileName, typeElement);
+    private static FileObject createResourceFile(Filer filer, TypeElement typeElement) throws IOException {
+        // Get the top-level type.
+        while (typeElement.getEnclosingElement().getKind() != ElementKind.PACKAGE) {
+            typeElement = (TypeElement) typeElement.getEnclosingElement();
+        }
+
+        // For type-level types, the binary name and qualified name are the same.
+        String qualifiedName = typeElement.getQualifiedName().toString();
+        ImportableType type = ImportableType.of(qualifiedName);
+        String fileName = String.format("%s.json", type.className());
+        return filer.createResource(StandardLocation.SOURCE_OUTPUT, type.packageName(), fileName, typeElement);
     }
 
     /** Gets a resource file generated during annotation processing. */

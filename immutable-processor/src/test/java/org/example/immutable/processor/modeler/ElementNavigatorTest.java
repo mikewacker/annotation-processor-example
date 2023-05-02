@@ -10,7 +10,6 @@ import javax.inject.Inject;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.util.Elements;
 import org.example.immutable.processor.base.ImmutableBaseLiteProcessor;
 import org.example.immutable.processor.base.ProcessorScope;
 import org.example.immutable.processor.test.TestCompiler;
@@ -34,13 +33,11 @@ public final class ElementNavigatorTest {
     public static final class TestLiteProcessor extends ImmutableBaseLiteProcessor {
 
         private final ElementNavigator navigator;
-        private final Elements elementUtils;
         private final Filer filer;
 
         @Inject
-        TestLiteProcessor(ElementNavigator navigator, Elements elementUtils, Filer filer) {
+        TestLiteProcessor(ElementNavigator navigator, Filer filer) {
             this.navigator = navigator;
-            this.elementUtils = elementUtils;
             this.filer = filer;
         }
 
@@ -51,7 +48,7 @@ public final class ElementNavigatorTest {
                     .map(Element::getSimpleName)
                     .map(Name::toString)
                     .toList();
-            TestResources.saveObject(filer, typeElement, elementUtils, methodNames);
+            TestResources.saveObject(filer, typeElement, methodNames);
         }
     }
 }
