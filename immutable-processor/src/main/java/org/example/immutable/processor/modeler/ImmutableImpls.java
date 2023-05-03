@@ -9,16 +9,16 @@ import org.example.immutable.processor.error.Errors;
 import org.example.immutable.processor.model.ImmutableImpl;
 import org.example.immutable.processor.model.ImmutableMember;
 import org.example.immutable.processor.model.ImmutableType;
-import org.example.immutable.processor.model.NamedType;
-import org.example.immutable.processor.model.TopLevelType;
+import org.example.immutable.processor.model.MemberType;
+import org.example.processor.type.ImportableType;
 
 /** Creates {@link ImmutableImpl}'s from {@link TypeElement}'s. */
 @ProcessorScope
 public final class ImmutableImpls {
 
-    private static final ImmutableType ERROR_TYPE =
-            ImmutableType.of(TopLevelType.of("?", "?"), List.of(), NamedType.of("?"), NamedType.of("?"));
-    private static final ImmutableMember ERROR_MEMBER = ImmutableMember.of("?", NamedType.of("?"));
+    private static final ImmutableType ERROR_TYPE = ImmutableType.of(
+            MemberType.declaredType(ImportableType.of("error.ImmutableError")),
+            MemberType.declaredType(ImportableType.of("error.Error")));
 
     private final ImmutableTypes typeFactory;
     private final ImmutableMembers memberFactory;
@@ -40,17 +40,12 @@ public final class ImmutableImpls {
     /** Creates an {@link ImmutableImpl}, or empty if validation fails. */
     public Optional<ImmutableImpl> create(TypeElement typeElement) {
         try (Errors.Tracker errorTracker = errorReporter.createErrorTracker()) {
-            // Create and validate the type.
             ImmutableType type = typeFactory.create(typeElement).orElse(ERROR_TYPE);
-
-            // Create and validate the methods.
             List<ImmutableMember> members = navigator
                     .getMethodsToImplement(typeElement)
                     .map(memberFactory::create)
-                    .map(maybeMember -> maybeMember.orElse(ERROR_MEMBER))
+                    .flatMap(Optional::stream)
                     .toList();
-
-            // Create the implementation.
             ImmutableImpl impl = ImmutableImpl.of(type, members);
             return errorTracker.checkNoErrors(impl);
         }

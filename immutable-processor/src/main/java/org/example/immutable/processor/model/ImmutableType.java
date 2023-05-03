@@ -1,7 +1,9 @@
 package org.example.immutable.processor.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.google.common.base.Splitter;
 import java.util.List;
 import org.immutables.value.Value;
 
@@ -15,25 +17,30 @@ import org.immutables.value.Value;
 @JsonDeserialize(as = ImmutableImmutableType.class)
 public interface ImmutableType {
 
-    static ImmutableType of(
-            TopLevelType rawImplType, List<String> typeVars, NamedType implType, NamedType interfaceType) {
+    static ImmutableType of(MemberType implType, MemberType interfaceType) {
         return ImmutableImmutableType.builder()
-                .rawImplType(rawImplType)
-                .typeVars(typeVars)
                 .implType(implType)
                 .interfaceType(interfaceType)
                 .build();
     }
 
-    /** Gets the raw type of the implementing class. */
-    TopLevelType rawImplType();
-
-    /** Gets the type variables for generic types, or an empty list for non-generic types. */
-    List<String> typeVars();
-
     /** Gets the type of the implementing class. */
-    NamedType implType();
+    MemberType implType();
 
     /** Gets the type of the implemented interface. */
-    NamedType interfaceType();
+    MemberType interfaceType();
+
+    @Value.Derived
+    @JsonIgnore
+    default List<String> typeVars() {
+        String nameFormat = interfaceType().nameFormat();
+        int beginIndex = nameFormat.indexOf('<');
+        if (beginIndex == -1) {
+            return List.of();
+        }
+
+        int endIndex = nameFormat.indexOf('>');
+        String typeVarsText = nameFormat.substring(beginIndex + 1, endIndex);
+        return Splitter.on(", ").splitToList(typeVarsText);
+    }
 }

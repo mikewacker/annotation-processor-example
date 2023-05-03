@@ -26,8 +26,11 @@ public final class ImmutableImplTest {
     @Test
     public void importManager() {
         ImportManager importManager = TestImmutableImpls.coloredRectangle().importManager();
-        String packageName =
-                TestImmutableImpls.coloredRectangle().type().rawImplType().packageName();
+        String packageName = TestImmutableImpls.coloredRectangle()
+                .type()
+                .implType()
+                .rawType()
+                .packageName();
         ImportManager expectedImportManager = SimpleImportManager.of(
                 packageName,
                 Set.of(

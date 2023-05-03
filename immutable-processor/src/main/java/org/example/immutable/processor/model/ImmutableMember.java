@@ -10,7 +10,7 @@ import org.immutables.value.Value;
 @JsonDeserialize(as = ImmutableImmutableMember.class)
 public interface ImmutableMember {
 
-    static ImmutableMember of(String name, NamedType type) {
+    static ImmutableMember of(String name, MemberType type) {
         return ImmutableImmutableMember.builder().name(name).type(type).build();
     }
 
@@ -18,5 +18,5 @@ public interface ImmutableMember {
     String name();
 
     /** Gets the type of the member. */
-    NamedType type();
+    MemberType type();
 }
