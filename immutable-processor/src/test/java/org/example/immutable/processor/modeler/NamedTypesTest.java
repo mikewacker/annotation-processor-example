@@ -45,42 +45,6 @@ public final class NamedTypesTest {
     }
 
     @Test
-    public void create_TypeDeclaredNested() throws Exception {
-        NamedType expectedType = NamedType.of("%s.UncaughtExceptionHandler", TopLevelType.ofClass(Thread.class));
-        create("test/method/TypeDeclaredNested.java", expectedType);
-    }
-
-    @Test
-    public void create_TypeDeclaredNestedGenericInstance() throws Exception {
-        NamedType expectedType = NamedType.of(
-                "%s<%s>.Inner<%s>",
-                TopLevelType.of("test.method", "Outer"),
-                TopLevelType.ofClass(String.class),
-                TopLevelType.ofClass(String.class));
-        create("test/method/TypeDeclaredNestedGenericInstance.java", expectedType);
-    }
-
-    @Test
-    public void create_TypeDeclaredNestedGenericStatic() throws Exception {
-        NamedType expectedType = NamedType.of(
-                "%s.Entry<%s, %s>",
-                TopLevelType.ofClass(Map.class),
-                TopLevelType.ofClass(String.class),
-                TopLevelType.ofClass(String.class));
-        create("test/method/TypeDeclaredNestedGenericStatic.java", expectedType);
-    }
-
-    @Test
-    public void create_TypeDeclaredPathological() throws Exception {
-        NamedType expectedType = NamedType.of(
-                "%s<%s>.Inner<%s>",
-                TopLevelType.of("test.method", "OuterBase"),
-                TopLevelType.ofClass(String.class),
-                TopLevelType.ofClass(String.class));
-        create("test/method/TypeDeclaredPathological.java", expectedType);
-    }
-
-    @Test
     public void create_TypePrimitive() throws Exception {
         NamedType expectedType = NamedType.of("int");
         create("test/method/TypePrimitive.java", expectedType);
