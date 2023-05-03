@@ -2,7 +2,6 @@ package org.example.immutable.processor.generator;
 
 import java.io.PrintWriter;
 import java.io.Writer;
-import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.processing.Generated;
 import org.example.immutable.processor.ImmutableProcessor;
@@ -11,7 +10,7 @@ import org.example.immutable.processor.model.ImmutableMember;
 import org.example.immutable.processor.model.ImmutableType;
 import org.example.immutable.processor.model.NamedType;
 import org.example.immutable.processor.model.TopLevelType;
-import org.example.processor.type.ImportableType;
+import org.example.processor.imports.ImportGenerator;
 
 /** Writes the source code for an {@link ImmutableImpl}, using an open {@link Writer}. */
 final class SourceWriter {
@@ -38,7 +37,7 @@ final class SourceWriter {
 
     /** Writes the source code. */
     private void writeSource() {
-        writePackageAndImports();
+        ImportGenerator.instance().generateSource(writer, impl.importManager());
         writeClassHeader();
         if (impl.members().isEmpty()) {
             writeConstructor();
@@ -49,23 +48,6 @@ final class SourceWriter {
         writeConstructor();
         writeMethods();
         writeClassFooter();
-    }
-
-    /** Writes the package and the imports. */
-    private void writePackageAndImports() {
-        String packageName = impl.type().rawImplType().packageName();
-        List<ImportableType> importDeclarations = impl.importManager().getImportDeclarations();
-
-        if (!packageName.isEmpty()) {
-            writer.format("package %s;", packageName).println();
-            writer.println();
-        }
-
-        if (!importDeclarations.isEmpty()) {
-            importDeclarations.forEach(
-                    type -> writer.format("import %s;", type.qualifiedName()).println());
-            writer.println();
-        }
     }
 
     /** Writes the class declaration and the opening curly brace. */

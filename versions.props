@@ -1,7 +1,7 @@
 com.fasterxml.jackson.*:* = 2.14.1
 com.google.auto.service:* = 1.0.1
 com.google.dagger:* = 2.44.2
-com.google.errorprone:error_prone_core = 2.16
+com.google.errorprone:error_prone_core = 2.18.0
 com.google.guava:* = 31.1-jre
 com.google.testing.compile:compile-testing = 0.19
 javax.inject:javax.inject = 1

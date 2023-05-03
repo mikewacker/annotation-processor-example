@@ -57,7 +57,7 @@ public interface ImmutableImpl {
         // Create the import manager.
         String packageName = type().rawImplType().packageName();
         Set<String> inScopeNames = Set.copyOf(type().typeVars());
-        return TopLevelImportManager.of(referencedTypes, packageName, inScopeNames);
+        return TopLevelImportManager.of(packageName, referencedTypes, inScopeNames);
     }
 
     private static void addAllTopLevelTypes(

@@ -11,7 +11,6 @@ import javax.inject.Inject;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Elements;
 import org.example.immutable.processor.base.ImmutableBaseLiteProcessor;
 import org.example.immutable.processor.base.ProcessorScope;
 import org.example.immutable.processor.model.MemberType;
@@ -124,7 +123,7 @@ public final class MemberTypesTest {
         private final Filer filer;
 
         @Inject
-        TestLiteProcessor(MemberTypes types, ElementNavigator navigator, Elements elementUtils, Filer filer) {
+        TestLiteProcessor(MemberTypes types, ElementNavigator navigator, Filer filer) {
             this.typeFactory = types;
             this.navigator = navigator;
             this.filer = filer;
