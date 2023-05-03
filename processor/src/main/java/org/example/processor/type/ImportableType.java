@@ -41,6 +41,7 @@ public interface ImportableType extends Comparable<ImportableType> {
 
     /** Gets the fully qualified name. */
     @Value.Derived
+    @Value.Auxiliary
     @JsonIgnore
     default String qualifiedName() {
         return binaryName().replace('$', '.');
@@ -48,6 +49,7 @@ public interface ImportableType extends Comparable<ImportableType> {
 
     /** Gets the simple name. */
     @Value.Derived
+    @Value.Auxiliary
     @JsonIgnore
     default String simpleName() {
         int lastNestingIndex = className().lastIndexOf('.');
@@ -56,6 +58,7 @@ public interface ImportableType extends Comparable<ImportableType> {
 
     /** Gets the package name. */
     @Value.Derived
+    @Value.Auxiliary
     @JsonIgnore
     default String packageName() {
         int packageLength = binaryName().length() - className().length() - 1;
@@ -64,6 +67,7 @@ public interface ImportableType extends Comparable<ImportableType> {
 
     /** Gets the class name, using '.' to delimit nested classes. */
     @Value.Derived
+    @Value.Auxiliary
     @JsonIgnore
     default String className() {
         int lastDotIndex = binaryName().lastIndexOf('.');
@@ -73,6 +77,7 @@ public interface ImportableType extends Comparable<ImportableType> {
 
     /** Determines if this type is a top-level type. */
     @Value.Derived
+    @Value.Auxiliary
     @JsonIgnore
     default boolean isTopLevelType() {
         return !binaryName().contains("$");
