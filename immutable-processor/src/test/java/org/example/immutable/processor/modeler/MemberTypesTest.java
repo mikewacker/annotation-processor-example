@@ -45,13 +45,27 @@ public final class MemberTypesTest {
     }
 
     @Test
-    public void create_TypeDeclaredNestedGenericInstance() throws Exception {
-        MemberType expectedType = MemberType.of(
-                "%s<%s>.Inner<%s>",
-                ImportableType.of("test.method.Outer"),
-                ImportableType.ofClass(String.class),
-                ImportableType.ofClass(String.class));
-        create("test/method/TypeDeclaredNestedGenericInstance.java", expectedType);
+    public void create_TypeDeclaredInner_GenericGeneric() throws Exception {
+        MemberType expectedType = MemberType.of("%s<O>.Inner<I>", ImportableType.of("test.method.GenericGenericOuter"));
+        create("test/method/TypeDeclaredInner_GenericGeneric.java", expectedType);
+    }
+
+    @Test
+    public void create_TypeDeclaredInner_GenericNonGeneric() throws Exception {
+        MemberType expectedType = MemberType.of("%s<O>.Inner", ImportableType.of("test.method.GenericNonGenericOuter"));
+        create("test/method/TypeDeclaredInner_GenericNonGeneric.java", expectedType);
+    }
+
+    @Test
+    public void create_TypeDeclaredInner_NonGenericGeneric() throws Exception {
+        MemberType expectedType = MemberType.of("%s<I>", ImportableType.of("test.method.NonGenericGenericOuter$Inner"));
+        create("test/method/TypeDeclaredInner_NonGenericGeneric.java", expectedType);
+    }
+
+    @Test
+    public void create_TypeDeclaredInner_NonGenericNonGeneric() throws Exception {
+        MemberType expectedType = MemberType.of("%s", ImportableType.of("test.method.NonGenericNonGenericOuter$Inner"));
+        create("test/method/TypeDeclaredInner_NonGenericNonGeneric.java", expectedType);
     }
 
     @Test

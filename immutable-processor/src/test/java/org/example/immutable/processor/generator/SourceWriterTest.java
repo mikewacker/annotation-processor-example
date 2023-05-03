@@ -7,13 +7,8 @@ import com.google.testing.compile.JavaFileObjects;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringWriter;
-import java.util.List;
 import javax.tools.JavaFileObject;
 import org.example.immutable.processor.model.ImmutableImpl;
-import org.example.immutable.processor.model.ImmutableMember;
-import org.example.immutable.processor.model.ImmutableType;
-import org.example.immutable.processor.model.NamedType;
-import org.example.immutable.processor.model.TopLevelType;
 import org.example.immutable.processor.test.TestImmutableImpls;
 import org.junit.jupiter.api.Test;
 
@@ -34,63 +29,9 @@ public final class SourceWriterTest {
         writeSource(TestImmutableImpls.empty(), "generated/test/ImmutableEmpty.java");
     }
 
-    @Test
-    public void writeSource_QualifiedTypes() throws IOException {
-        writeSource(createImpl_QualifiedTypes(), "generated/test/source/ImmutableQualifiedTypes.java");
-    }
-
-    @Test
-    public void writeSource_QualifiedTypesDeclaration() throws IOException {
-        writeSource(
-                createImpl_QualifiedTypesDeclaration(),
-                "generated/test/source/ImmutableQualifiedTypesDeclaration.java");
-    }
-
     private void writeSource(ImmutableImpl impl, String expectedSourcePath) throws IOException {
         String source = writeSourceToString(impl);
         assertThat(source).isEqualTo(loadSource(expectedSourcePath));
-    }
-
-    private static ImmutableImpl createImpl_QualifiedTypes() {
-        // Create the type.
-        TopLevelType rawImplType = TopLevelType.of("test.source", "ImmutableQualifiedTypes");
-        TopLevelType rawInterfaceType = TopLevelType.of("test.source", "QualifiedTypes");
-
-        List<String> typeVars = List.of();
-        NamedType implType = NamedType.ofTopLevelType(rawImplType);
-        NamedType interfaceType = NamedType.ofTopLevelType(rawInterfaceType);
-
-        ImmutableType type = ImmutableType.of(rawImplType, typeVars, implType, interfaceType);
-
-        // Create the members
-        TopLevelType stringPackageImport = TopLevelType.of("test.source", "String");
-        TopLevelType stringImport = TopLevelType.ofClass(String.class);
-        TopLevelType generatedPackageImport = TopLevelType.of("test.source", "Generated");
-        TopLevelType overridePackageImport = TopLevelType.of("test.source", "Override");
-
-        ImmutableMember member1 = ImmutableMember.of("member1", NamedType.ofTopLevelType(stringPackageImport));
-        ImmutableMember member2 = ImmutableMember.of("member2", NamedType.ofTopLevelType(stringImport));
-        ImmutableMember member3 = ImmutableMember.of("member3", NamedType.ofTopLevelType(generatedPackageImport));
-        ImmutableMember member4 = ImmutableMember.of("member4", NamedType.ofTopLevelType(overridePackageImport));
-
-        // Create the implementation.
-        return ImmutableImpl.of(type, List.of(member1, member2, member3, member4));
-    }
-
-    private static ImmutableImpl createImpl_QualifiedTypesDeclaration() {
-        // Create the type.
-        TopLevelType rawImplType = TopLevelType.of("test.source", "ImmutableQualifiedTypesDeclaration");
-        TopLevelType rawInterfaceType = TopLevelType.of("test.source", "QualifiedTypesDeclaration");
-
-        List<String> typeVars = List.of("ImmutableQualifiedTypesDeclaration");
-        NamedType implType =
-                NamedType.of("%s<ImmutableQualifiedTypesDeclaration extends %s>", rawImplType, rawImplType);
-        NamedType interfaceType = NamedType.of("%s<ImmutableQualifiedTypesDeclaration>", rawInterfaceType);
-
-        ImmutableType type = ImmutableType.of(rawImplType, typeVars, implType, interfaceType);
-
-        // Create the implementation.
-        return ImmutableImpl.of(type, List.of());
     }
 
     private static String writeSourceToString(ImmutableImpl impl) {

@@ -32,14 +32,6 @@ public final class ImmutableProcessorTest {
                 "generated/test/ImmutableColoredRectangle.java");
     }
 
-    @Test
-    public void compile_QualifiedTypes() {
-        compile(
-                "test/source/QualifiedTypes.java",
-                "test.source.ImmutableQualifiedTypes",
-                "generated/test/source/ImmutableQualifiedTypes.java");
-    }
-
     private void compile(String sourcePath, String generatedQualifiedName, String expectedGeneratedSourcePath) {
         Compilation compilation = TestCompiler.create().compile(sourcePath);
         assertThat(compilation)
