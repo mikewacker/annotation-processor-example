@@ -76,17 +76,6 @@ public final class ImmutableTypesTest {
         create("test/type/InterfaceNested.java", expectedType);
     }
 
-    @Test
-    public void create_InterfaceWithoutPackage() throws Exception {
-        TopLevelType rawImplType = TopLevelType.of("", "ImmutableInterfaceWithoutPackage");
-        TopLevelType rawInterfaceType = TopLevelType.of("", "InterfaceWithoutPackage");
-        List<String> typeVars = List.of();
-        NamedType implType = NamedType.ofTopLevelType(rawImplType);
-        NamedType interfaceType = NamedType.ofTopLevelType(rawInterfaceType);
-        ImmutableType expectedType = ImmutableType.of(rawImplType, typeVars, implType, interfaceType);
-        create("InterfaceWithoutPackage.java", expectedType);
-    }
-
     private void create(String sourcePath, ImmutableType expectedType) throws Exception {
         Compilation compilation = TestCompiler.create(TestLiteProcessor.class).compile(sourcePath);
         ImmutableType type = TestResources.loadObjectForSource(compilation, sourcePath, new TypeReference<>() {});

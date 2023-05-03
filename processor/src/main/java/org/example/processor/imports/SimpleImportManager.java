@@ -23,31 +23,36 @@ public final class SimpleImportManager extends BaseImportManager {
 
     private static final Splitter NAME_SPLITTER = Splitter.on('.');
 
+    private final String packageName;
     private final ImportTrie trie;
     private final List<ImportableType> importDeclarations;
     private final Set<ImportableType> implicitlyImportedTypes;
 
     /**
-     * Creates an {@link ImportManager} from a set of imported types and the package name.
+     * Creates an {@link ImportManager} from a package name and a set of imported types.
      *
      * <p>If an implicitly imported type must be referenced using its fully qualified name
      * (e.g., the simple name conflicts with another name in scope), it must not be included.</p>
      *
-     * @param importedTypes set of types imported in the generated source code, including implicitly imported types
      * @param packageName package name for the generated source code
+     * @param importedTypes set of types imported in the generated source code, including implicitly imported types
      */
-    public static ImportManager of(Set<ImportableType> importedTypes, String packageName) {
-        Set<String> implicitlyImportedPackages = Set.of("java.lang", packageName);
-        return new SimpleImportManager(importedTypes, implicitlyImportedPackages);
+    public static ImportManager of(String packageName, Set<ImportableType> importedTypes) {
+        return new SimpleImportManager(packageName, importedTypes);
     }
 
     @Override
-    public List<ImportableType> getImportDeclarations() {
+    public String packageName() {
+        return packageName;
+    }
+
+    @Override
+    public List<ImportableType> importDeclarations() {
         return importDeclarations;
     }
 
     @Override
-    public Set<ImportableType> getImplicitlyImportedTypes() {
+    public Set<ImportableType> implicitlyImportedTypes() {
         return implicitlyImportedTypes;
     }
 
@@ -60,8 +65,10 @@ public final class SimpleImportManager extends BaseImportManager {
         writer.print(shortenedName);
     }
 
-    /** Creates an import manager from the imported types and the implicitly imported packages. */
-    private SimpleImportManager(Set<ImportableType> importedTypes, Set<String> implicitlyImportedPackages) {
+    /** Creates an import manager from the package name and the imported types. */
+    private SimpleImportManager(String packageName, Set<ImportableType> importedTypes) {
+        Set<String> implicitlyImportedPackages = Set.of("java.lang", packageName);
+        this.packageName = packageName;
         trie = ImportTrie.createRoot();
         populateTrie(importedTypes, implicitlyImportedPackages);
         importDeclarations = collectImportDeclarations();

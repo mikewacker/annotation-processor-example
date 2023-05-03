@@ -16,8 +16,11 @@ import org.example.processor.type.ImportableType;
  */
 public interface ImportManager extends SourceGenerator<ImportableType> {
 
+    /** Gets the package name for the generated source code. */
+    String packageName();
+
     /** Gets the import declarations in sorted order. */
-    List<ImportableType> getImportDeclarations();
+    List<ImportableType> importDeclarations();
 
     /**
      * Gets the implicitly imported types.
@@ -27,5 +30,5 @@ public interface ImportManager extends SourceGenerator<ImportableType> {
      *
      * <p>Implicitly imported types that are not referenced may or may not be included.</p>
      */
-    Set<ImportableType> getImplicitlyImportedTypes();
+    Set<ImportableType> implicitlyImportedTypes();
 }

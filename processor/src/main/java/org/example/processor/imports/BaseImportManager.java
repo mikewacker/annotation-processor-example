@@ -23,24 +23,31 @@ public abstract class BaseImportManager implements ImportManager {
             return false;
         }
 
-        return getImportDeclarations().equals(other.getImportDeclarations())
-                && getImplicitlyImportedTypes().equals(other.getImplicitlyImportedTypes());
+        return packageName().equals(other.packageName())
+                && importDeclarations().equals(other.importDeclarations())
+                && implicitlyImportedTypes().equals(other.implicitlyImportedTypes());
     }
 
     @Override
     public final int hashCode() {
-        return Objects.hash(getImportDeclarations(), getImplicitlyImportedTypes());
+        return Objects.hash(packageName(), importDeclarations(), implicitlyImportedTypes());
     }
 
     @Override
     public final String toString() {
-        Set<ImportableType> sortedImplicitlyImportedTypes = new TreeSet<>(getImplicitlyImportedTypes());
+        Set<ImportableType> sortedImplicitlyImportedTypes = new TreeSet<>(implicitlyImportedTypes());
         String fieldsString = List.of(
-                        fieldToString("importDeclarations", getImportDeclarations()),
+                        fieldToString("packageName", packageName()),
+                        fieldToString("importDeclarations", importDeclarations()),
                         fieldToString("implicitlyImportedTypes", sortedImplicitlyImportedTypes))
                 .stream()
                 .collect(Collectors.joining(", "));
         return String.format("ImportManager{%s}", fieldsString);
+    }
+
+    /** Converts a field to a string. */
+    private String fieldToString(String name, String value) {
+        return String.format("%s=%s", name, value);
     }
 
     /** Converts a field to a string. */

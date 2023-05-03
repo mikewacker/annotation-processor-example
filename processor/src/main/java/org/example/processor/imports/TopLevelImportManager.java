@@ -16,13 +16,13 @@ public final class TopLevelImportManager {
      * has the same simple name as a referenced type in the {@code java.lang} package.
      * To handle this edge case, add all top-level types in the package to the set of referenced types.</p>
      *
-     * @param referencedTypes set of types referenced in the generated source code
      * @param packageName package name for the generated source code
+     * @param referencedTypes set of types referenced in the generated source code
      * @param inScopeNames set of other names that could be in scope (e.g., type variables)
      */
-    public static ImportManager of(Set<ImportableType> referencedTypes, String packageName, Set<String> inScopeNames) {
+    public static ImportManager of(String packageName, Set<ImportableType> referencedTypes, Set<String> inScopeNames) {
         Set<ImportableType> importedTypes = getImportedTypes(referencedTypes, packageName, inScopeNames);
-        return SimpleImportManager.of(importedTypes, packageName);
+        return SimpleImportManager.of(packageName, importedTypes);
     }
 
     /** Gets the set of imported types, including implicitly imported types. */

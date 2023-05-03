@@ -29,6 +29,7 @@ public final class ImmutableImplTest {
         String packageName =
                 TestImmutableImpls.coloredRectangle().type().rawImplType().packageName();
         ImportManager expectedImportManager = SimpleImportManager.of(
+                packageName,
                 Set.of(
                         ImportableType.ofClass(Generated.class),
                         ImportableType.ofClass(Override.class),
@@ -36,8 +37,7 @@ public final class ImmutableImplTest {
                         ImportableType.of("test.ColoredRectangle"),
                         ImportableType.of("test.Rectangle"),
                         ImportableType.ofClass(Color.class),
-                        ImportableType.ofClass(Optional.class)),
-                packageName);
+                        ImportableType.ofClass(Optional.class)));
         assertThat(importManager).isEqualTo(expectedImportManager);
     }
 

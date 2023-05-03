@@ -12,11 +12,11 @@ public final class TopLevelImportManagerTest {
     @Test
     public void of() {
         ImportManager importManager = TopLevelImportManager.of(
-                Set.of(ImportableType.of("org.example.Example"), ImportableType.ofClass(Map.Entry.class)),
                 "org.example",
+                Set.of(ImportableType.of("org.example.Example"), ImportableType.ofClass(Map.Entry.class)),
                 Set.of());
-        assertThat(importManager.getImportDeclarations()).containsExactly(ImportableType.ofClass(Map.class));
-        assertThat(importManager.getImplicitlyImportedTypes())
+        assertThat(importManager.importDeclarations()).containsExactly(ImportableType.ofClass(Map.class));
+        assertThat(importManager.implicitlyImportedTypes())
                 .containsExactlyInAnyOrder(ImportableType.of("org.example.Example"));
         assertThat(importManager.toSource(ImportableType.ofClass(Map.Entry.class)))
                 .isEqualTo("Map.Entry");
@@ -27,29 +27,29 @@ public final class TopLevelImportManagerTest {
     @Test
     public void of_DoNotImportNonPackageTypeConflictingWithType() {
         ImportManager importManager = TopLevelImportManager.of(
-                Set.of(ImportableType.of("test.Map$Nested"), ImportableType.ofClass(Map.Entry.class)),
                 "org.example",
+                Set.of(ImportableType.of("test.Map$Nested"), ImportableType.ofClass(Map.Entry.class)),
                 Set.of());
-        assertThat(importManager.getImportDeclarations()).isEmpty();
-        assertThat(importManager.getImplicitlyImportedTypes()).isEmpty();
+        assertThat(importManager.importDeclarations()).isEmpty();
+        assertThat(importManager.implicitlyImportedTypes()).isEmpty();
     }
 
     @Test
     public void of_ImportPackageTypeConflictingWithType() {
         ImportManager importManager = TopLevelImportManager.of(
-                Set.of(ImportableType.of("org.example.Map"), ImportableType.ofClass(Map.class)),
                 "org.example",
+                Set.of(ImportableType.of("org.example.Map"), ImportableType.ofClass(Map.class)),
                 Set.of());
-        assertThat(importManager.getImportDeclarations()).isEmpty();
-        assertThat(importManager.getImplicitlyImportedTypes())
+        assertThat(importManager.importDeclarations()).isEmpty();
+        assertThat(importManager.implicitlyImportedTypes())
                 .containsExactlyInAnyOrder(ImportableType.of("org.example.Map"));
     }
 
     @Test
     public void of_DoNotImportTypeConflictingWithInScopeName() {
         ImportManager importManager =
-                TopLevelImportManager.of(Set.of(ImportableType.ofClass(Map.class)), "org.example", Set.of("Map"));
-        assertThat(importManager.getImportDeclarations()).isEmpty();
-        assertThat(importManager.getImplicitlyImportedTypes()).isEmpty();
+                TopLevelImportManager.of("org.example", Set.of(ImportableType.ofClass(Map.class)), Set.of("Map"));
+        assertThat(importManager.importDeclarations()).isEmpty();
+        assertThat(importManager.implicitlyImportedTypes()).isEmpty();
     }
 }

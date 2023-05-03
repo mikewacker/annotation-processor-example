@@ -8,7 +8,6 @@ import javax.annotation.processing.Filer;
 import javax.inject.Inject;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.util.Elements;
 import org.example.immutable.processor.base.ImmutableBaseLiteProcessor;
 import org.example.immutable.processor.base.ProcessorScope;
 import org.example.immutable.processor.model.ImmutableMember;
@@ -67,8 +66,7 @@ public final class ImmutableMembersTest {
         private final Filer filer;
 
         @Inject
-        TestLiteProcessor(
-                ImmutableMembers memberFactory, ElementNavigator navigator, Elements elementUtils, Filer filer) {
+        TestLiteProcessor(ImmutableMembers memberFactory, ElementNavigator navigator, Filer filer) {
             this.memberFactory = memberFactory;
             this.navigator = navigator;
             this.filer = filer;
