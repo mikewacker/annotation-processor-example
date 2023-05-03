@@ -8,19 +8,21 @@ import org.example.immutable.processor.ImmutableProcessor;
 import org.example.immutable.processor.model.ImmutableImpl;
 import org.example.immutable.processor.model.ImmutableMember;
 import org.example.immutable.processor.model.ImmutableType;
-import org.example.immutable.processor.model.NamedType;
-import org.example.immutable.processor.model.TopLevelType;
+import org.example.immutable.processor.model.MemberType;
 import org.example.processor.imports.ImportGenerator;
+import org.example.processor.source.SourceGenerator;
+import org.example.processor.type.ImportableType;
 
 /** Writes the source code for an {@link ImmutableImpl}, using an open {@link Writer}. */
 final class SourceWriter {
 
-    private static final NamedType GENERATED_TYPE = NamedType.ofTopLevelType(TopLevelType.ofClass(Generated.class));
-    private static final NamedType OVERRIDE_TYPE = NamedType.ofTopLevelType(TopLevelType.ofClass(Override.class));
+    private static final MemberType GENERATED_TYPE = MemberType.declaredType(ImportableType.ofClass(Generated.class));
+    private static final MemberType OVERRIDE_TYPE = MemberType.declaredType(ImportableType.ofClass(Override.class));
     private static final String PROCESSOR_QUALIFIED_NAME = ImmutableProcessor.class.getCanonicalName();
 
     private final PrintWriter writer;
     private final ImmutableImpl impl;
+    private final SourceGenerator<MemberType> typeNamer;
 
     /** Writes the source code for the provided {@link ImmutableImpl}. */
     public static void writeSource(Writer writer, ImmutableImpl impl) {
@@ -33,6 +35,7 @@ final class SourceWriter {
     private SourceWriter(PrintWriter writer, ImmutableImpl impl) {
         this.writer = writer;
         this.impl = impl;
+        typeNamer = MemberType.Namer.of(impl.importManager());
     }
 
     /** Writes the source code. */
@@ -56,7 +59,9 @@ final class SourceWriter {
 
         writer.format("@%s(\"%s\")", name(GENERATED_TYPE), PROCESSOR_QUALIFIED_NAME)
                 .println();
-        writer.format("class %s implements %s {", declarationName(type.implType()), name(type.interfaceType()))
+        writer.format(
+                        "class %s implements %s {",
+                        name(type.implType().topLevelDeclaration()), name(type.interfaceType()))
                 .println();
     }
 
@@ -71,13 +76,13 @@ final class SourceWriter {
 
     /** Writes the sole constructor to initialize all the fields. */
     private void writeConstructor() {
+        String simpleName = impl.type().implType().rawType().simpleName();
         String params = impl.members().stream()
                 .map(member -> String.format("%s %s", name(member.type()), member.name()))
                 .collect(Collectors.joining(", "));
 
         writer.println();
-        writer.format("    %s(%s) {", impl.type().rawImplType().simpleName(), params)
-                .println();
+        writer.format("    %s(%s) {", simpleName, params).println();
         for (ImmutableMember member : impl.members()) {
             writer.format("        this.%1$s = %1$s;", member.name()).println();
         }
@@ -102,12 +107,7 @@ final class SourceWriter {
     }
 
     /** Gets the type's name, qualifying types as appropriate. */
-    private String name(NamedType type) {
-        return type.name(impl.importManager());
-    }
-
-    /** Gets the type's name for a declaration, qualifying types as appropriate. */
-    private String declarationName(NamedType type) {
-        return type.declarationName(impl.importManager());
+    private String name(MemberType type) {
+        return typeNamer.toSource(type);
     }
 }

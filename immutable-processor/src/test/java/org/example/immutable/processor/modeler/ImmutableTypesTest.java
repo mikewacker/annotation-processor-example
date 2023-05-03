@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.testing.compile.Compilation;
-import java.util.List;
 import java.util.concurrent.Callable;
 import javax.annotation.processing.Filer;
 import javax.inject.Inject;
@@ -12,12 +11,12 @@ import javax.lang.model.element.TypeElement;
 import org.example.immutable.processor.base.ImmutableBaseLiteProcessor;
 import org.example.immutable.processor.base.ProcessorScope;
 import org.example.immutable.processor.model.ImmutableType;
-import org.example.immutable.processor.model.NamedType;
-import org.example.immutable.processor.model.TopLevelType;
+import org.example.immutable.processor.model.MemberType;
 import org.example.immutable.processor.test.CompilationError;
 import org.example.immutable.processor.test.TestCompiler;
 import org.example.immutable.processor.test.TestImmutableImpls;
 import org.example.immutable.processor.test.TestResources;
+import org.example.processor.type.ImportableType;
 import org.junit.jupiter.api.Test;
 
 public final class ImmutableTypesTest {
@@ -29,57 +28,54 @@ public final class ImmutableTypesTest {
 
     @Test
     public void create_Interface() throws Exception {
-        TopLevelType rawImplType = TopLevelType.of("test.type", "ImmutableInterface");
-        TopLevelType rawInterfaceType = TopLevelType.of("test.type", "Interface");
-        List<String> typeVars = List.of();
-        NamedType implType = NamedType.ofTopLevelType(rawImplType);
-        NamedType interfaceType = NamedType.ofTopLevelType(rawInterfaceType);
-        ImmutableType expectedType = ImmutableType.of(rawImplType, typeVars, implType, interfaceType);
+        ImmutableType expectedType = ImmutableType.of(
+                MemberType.declaredType(ImportableType.of("test.type.ImmutableInterface")),
+                MemberType.declaredType(ImportableType.of("test.type.Interface")));
         create("test/type/Interface.java", expectedType);
     }
 
     @Test
     public void create_InterfaceGeneric() throws Exception {
-        TopLevelType rawImplType = TopLevelType.of("test.type", "ImmutableInterfaceGeneric");
-        TopLevelType rawInterfaceType = TopLevelType.of("test.type", "InterfaceGeneric");
-        List<String> typeVars = List.of("T", "U");
-        NamedType implType = NamedType.of("%s<T, U>", rawImplType);
-        NamedType interfaceType = NamedType.of("%s<T, U>", rawInterfaceType);
-        ImmutableType expectedType = ImmutableType.of(rawImplType, typeVars, implType, interfaceType);
+        ImmutableType expectedType = ImmutableType.of(
+                MemberType.declaredType(
+                        ImportableType.of("test.type.ImmutableInterfaceGeneric"),
+                        MemberType.typeParameter("T"),
+                        MemberType.typeParameter("U")),
+                MemberType.declaredType(
+                        ImportableType.of("test.type.InterfaceGeneric"),
+                        MemberType.typeVariable("T"),
+                        MemberType.typeVariable("U")));
         create("test/type/InterfaceGeneric.java", expectedType);
     }
 
     @Test
     public void create_InterfaceGenericBounds() throws Exception {
-        TopLevelType rawImplType = TopLevelType.of("test.type", "ImmutableInterfaceGenericBounds");
-        TopLevelType rawInterfaceType = TopLevelType.of("test.type", "InterfaceGenericBounds");
-        List<String> typeVars = List.of("T");
-        NamedType implType = NamedType.of(
-                "%s<T extends %s & %s<%s>>",
-                rawImplType,
-                TopLevelType.ofClass(Runnable.class),
-                TopLevelType.ofClass(Callable.class),
-                TopLevelType.ofClass(Void.class));
-        NamedType interfaceType = NamedType.of("%s<T>", rawInterfaceType);
-        ImmutableType expectedType = ImmutableType.of(rawImplType, typeVars, implType, interfaceType);
+        ImmutableType expectedType = ImmutableType.of(
+                MemberType.declaredType(
+                        ImportableType.of("test.type.ImmutableInterfaceGenericBounds"),
+                        MemberType.typeParameter(
+                                "T",
+                                MemberType.declaredType(ImportableType.ofClass(Runnable.class)),
+                                MemberType.declaredType(
+                                        ImportableType.ofClass(Callable.class),
+                                        MemberType.declaredType(ImportableType.ofClass(Void.class))))),
+                MemberType.declaredType(
+                        ImportableType.of("test.type.InterfaceGenericBounds"), MemberType.typeVariable("T")));
         create("test/type/InterfaceGenericBounds.java", expectedType);
     }
 
     @Test
     public void create_InterfaceNested() throws Exception {
-        TopLevelType rawImplType = TopLevelType.of("test.type", "ImmutableInterfaceNested_Inner");
-        TopLevelType topLevelInterfaceType = TopLevelType.of("test.type", "InterfaceNested");
-        List<String> typeVars = List.of();
-        NamedType implType = NamedType.ofTopLevelType(rawImplType);
-        NamedType interfaceType = NamedType.of("%s.Inner", topLevelInterfaceType);
-        ImmutableType expectedType = ImmutableType.of(rawImplType, typeVars, implType, interfaceType);
+        ImmutableType expectedType = ImmutableType.of(
+                MemberType.declaredType(ImportableType.of("test.type.ImmutableInterfaceNested_Inner")),
+                MemberType.declaredType(ImportableType.of("test.type.InterfaceNested$Inner")));
         create("test/type/InterfaceNested.java", expectedType);
     }
 
     private void create(String sourcePath, ImmutableType expectedType) throws Exception {
         Compilation compilation = TestCompiler.create(TestLiteProcessor.class).compile(sourcePath);
         ImmutableType type = TestResources.loadObjectForSource(compilation, sourcePath, new TypeReference<>() {});
-        assertThat(normalizeType(type)).isEqualTo(normalizeType(expectedType));
+        assertThat(type).isEqualTo(expectedType);
     }
 
     @Test
@@ -124,11 +120,6 @@ public final class ImmutableTypesTest {
                 .expectingCompilationFailure()
                 .compile(sourcePath);
         assertThat(CompilationError.fromCompilation(compilation)).containsExactlyInAnyOrder(expectedError);
-    }
-
-    /** Empties the package types for comparison purposes. */
-    private ImmutableType normalizeType(ImmutableType type) {
-        return ImmutableType.of(type.rawImplType(), type.typeVars(), type.implType(), type.interfaceType());
     }
 
     @ProcessorScope

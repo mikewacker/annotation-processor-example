@@ -24,7 +24,7 @@ import org.example.processor.type.ImportableType;
  * Saves Java objects to JSON resource files during annotation processing, and loads those objects as well.
  *
  * <p>A resource file is associated with a {@link TypeElement}, and its path is the same as the source's path,
- * except that it has a .json extension. For nested classes, the binary name is used.<p>
+ * except that it has a .json extension.<p>
  *
  * <p>It assumes that the Java objects can be serialized to and deserialized from JSON.</p>
  */
