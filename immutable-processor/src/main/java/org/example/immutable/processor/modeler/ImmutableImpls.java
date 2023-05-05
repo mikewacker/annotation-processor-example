@@ -4,12 +4,12 @@ import java.util.List;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.lang.model.element.TypeElement;
-import org.example.immutable.processor.base.ProcessorScope;
 import org.example.immutable.processor.error.Errors;
 import org.example.immutable.processor.model.ImmutableImpl;
 import org.example.immutable.processor.model.ImmutableMember;
 import org.example.immutable.processor.model.ImmutableType;
 import org.example.immutable.processor.model.MemberType;
+import org.example.processor.base.ProcessorScope;
 import org.example.processor.type.ImportableType;
 
 /** Creates {@link ImmutableImpl}'s from {@link TypeElement}'s. */

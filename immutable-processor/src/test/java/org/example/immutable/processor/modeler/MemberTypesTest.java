@@ -11,12 +11,13 @@ import javax.inject.Inject;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
-import org.example.immutable.processor.base.ImmutableBaseLiteProcessor;
-import org.example.immutable.processor.base.ProcessorScope;
+import org.example.immutable.Immutable;
 import org.example.immutable.processor.model.MemberType;
 import org.example.immutable.processor.test.CompilationError;
 import org.example.immutable.processor.test.TestCompiler;
 import org.example.immutable.processor.test.TestResources;
+import org.example.processor.base.IsolatingLiteProcessor;
+import org.example.processor.base.ProcessorScope;
 import org.example.processor.type.ImportableType;
 import org.junit.jupiter.api.Test;
 
@@ -130,7 +131,7 @@ public final class MemberTypesTest {
     }
 
     @ProcessorScope
-    public static final class TestLiteProcessor extends ImmutableBaseLiteProcessor {
+    public static final class TestLiteProcessor extends IsolatingLiteProcessor<TypeElement> {
 
         private final MemberTypes typeFactory;
         private final ElementNavigator navigator;
@@ -138,6 +139,7 @@ public final class MemberTypesTest {
 
         @Inject
         TestLiteProcessor(MemberTypes types, ElementNavigator navigator, Filer filer) {
+            super(Immutable.class);
             this.typeFactory = types;
             this.navigator = navigator;
             this.filer = filer;

@@ -9,7 +9,7 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Elements;
-import org.example.immutable.processor.base.ProcessorScope;
+import org.example.processor.base.ProcessorScope;
 
 /** Navigates immutable types to extract the relevant elements. */
 @ProcessorScope

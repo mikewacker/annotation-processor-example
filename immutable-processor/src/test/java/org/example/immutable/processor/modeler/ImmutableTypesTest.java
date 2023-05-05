@@ -8,14 +8,15 @@ import java.util.concurrent.Callable;
 import javax.annotation.processing.Filer;
 import javax.inject.Inject;
 import javax.lang.model.element.TypeElement;
-import org.example.immutable.processor.base.ImmutableBaseLiteProcessor;
-import org.example.immutable.processor.base.ProcessorScope;
+import org.example.immutable.Immutable;
 import org.example.immutable.processor.model.ImmutableType;
 import org.example.immutable.processor.model.MemberType;
 import org.example.immutable.processor.test.CompilationError;
 import org.example.immutable.processor.test.TestCompiler;
 import org.example.immutable.processor.test.TestImmutableImpls;
 import org.example.immutable.processor.test.TestResources;
+import org.example.processor.base.IsolatingLiteProcessor;
+import org.example.processor.base.ProcessorScope;
 import org.example.processor.type.ImportableType;
 import org.junit.jupiter.api.Test;
 
@@ -123,13 +124,14 @@ public final class ImmutableTypesTest {
     }
 
     @ProcessorScope
-    public static final class TestLiteProcessor extends ImmutableBaseLiteProcessor {
+    public static final class TestLiteProcessor extends IsolatingLiteProcessor<TypeElement> {
 
         private final ImmutableTypes typeFactory;
         private final Filer filer;
 
         @Inject
         TestLiteProcessor(ImmutableTypes types, Filer filer) {
+            super(Immutable.class);
             this.typeFactory = types;
             this.filer = filer;
         }

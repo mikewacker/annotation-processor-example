@@ -9,15 +9,14 @@ import dagger.multibindings.IntoMap;
 import java.util.Map;
 import java.util.Objects;
 import javax.annotation.processing.Processor;
-import org.example.immutable.processor.base.ImmutableBaseLiteProcessorTest;
-import org.example.immutable.processor.base.LiteProcessor;
-import org.example.immutable.processor.base.ProcessorScope;
 import org.example.immutable.processor.generator.ImmutableGeneratorTest;
 import org.example.immutable.processor.modeler.ElementNavigatorTest;
 import org.example.immutable.processor.modeler.ImmutableImplsTest;
 import org.example.immutable.processor.modeler.ImmutableMembersTest;
 import org.example.immutable.processor.modeler.ImmutableTypesTest;
 import org.example.immutable.processor.modeler.MemberTypesTest;
+import org.example.processor.base.LiteProcessor;
+import org.example.processor.base.ProcessorScope;
 
 /**
  * Provides all test implementations of {@link LiteProcessor}
@@ -28,7 +27,7 @@ import org.example.immutable.processor.modeler.MemberTypesTest;
  * for each test implementation of {@link LiteProcessor}.</p>
  */
 @Module
-public interface TestProcessorModule {
+interface TestProcessorModule {
 
     /** Selects a {@link LiteProcessor} from all available test implementations.  */
     @Provides
@@ -50,22 +49,13 @@ public interface TestProcessorModule {
      * Add test implementations of LiteProcessor below (in import order).
      */
 
-    // org.example.immutable.processor.base
-
-    @Binds
-    @ProcessorScope
-    @IntoMap
-    @LiteProcessorClassKey(ImmutableBaseLiteProcessorTest.TestLiteProcessor.class)
-    LiteProcessor bindImmutableBaseLiteProcessorTestLiteProcessor(
-            ImmutableBaseLiteProcessorTest.TestLiteProcessor liteProcessor);
-
     // org.example.immutable.processor.generator
 
     @Binds
     @ProcessorScope
     @IntoMap
     @LiteProcessorClassKey(ImmutableGeneratorTest.TestLiteProcessor.class)
-    LiteProcessor bindImmutableGeneratorTestLiteProcessor(ImmutableGeneratorTest.TestLiteProcessor liteProcessor);
+    LiteProcessor bindImmutableGeneratorTest_TestLiteProcessor(ImmutableGeneratorTest.TestLiteProcessor liteProcessor);
 
     // org.example.immutable.processor.modeler
 
@@ -73,29 +63,29 @@ public interface TestProcessorModule {
     @ProcessorScope
     @IntoMap
     @LiteProcessorClassKey(ElementNavigatorTest.TestLiteProcessor.class)
-    LiteProcessor bindElementNavigatorTestLiteProcessor(ElementNavigatorTest.TestLiteProcessor liteProcessor);
+    LiteProcessor bindElementNavigatorTest_TestLiteProcessor(ElementNavigatorTest.TestLiteProcessor liteProcessor);
 
     @Binds
     @ProcessorScope
     @IntoMap
     @LiteProcessorClassKey(ImmutableImplsTest.TestLiteProcessor.class)
-    LiteProcessor bindImmutableImplsTestLiteProcessor(ImmutableImplsTest.TestLiteProcessor liteProcessor);
+    LiteProcessor bindImmutableImplsTest_TestLiteProcessor(ImmutableImplsTest.TestLiteProcessor liteProcessor);
 
     @Binds
     @ProcessorScope
     @IntoMap
     @LiteProcessorClassKey(ImmutableMembersTest.TestLiteProcessor.class)
-    LiteProcessor bindImmutableMembersTestLiteProcessor(ImmutableMembersTest.TestLiteProcessor liteProcessor);
+    LiteProcessor bindImmutableMembersTest_TestLiteProcessor(ImmutableMembersTest.TestLiteProcessor liteProcessor);
 
     @Binds
     @ProcessorScope
     @IntoMap
     @LiteProcessorClassKey(ImmutableTypesTest.TestLiteProcessor.class)
-    LiteProcessor bindImmutableTypesTestLiteProcessor(ImmutableTypesTest.TestLiteProcessor liteProcessor);
+    LiteProcessor bindImmutableTypesTest_TestLiteProcessor(ImmutableTypesTest.TestLiteProcessor liteProcessor);
 
     @Binds
     @ProcessorScope
     @IntoMap
     @LiteProcessorClassKey(MemberTypesTest.TestLiteProcessor.class)
-    LiteProcessor bindMemberTypesTestLiteProcessor(MemberTypesTest.TestLiteProcessor liteProcessor);
+    LiteProcessor bindMemberTypesTest_TestLiteProcessor(MemberTypesTest.TestLiteProcessor liteProcessor);
 }
