@@ -8,7 +8,7 @@ import javax.annotation.processing.Messager;
 import javax.inject.Inject;
 import javax.lang.model.element.Element;
 import javax.tools.Diagnostic;
-import org.example.immutable.processor.base.ProcessorScope;
+import org.example.processor.base.ProcessorScope;
 
 /**
  * Reports diagnostic errors, which result in compilation errors.

@@ -4,14 +4,16 @@ import static com.google.testing.compile.CompilationSubject.assertThat;
 
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.JavaFileObjects;
+import java.io.IOException;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.lang.model.element.TypeElement;
-import org.example.immutable.processor.base.ImmutableBaseLiteProcessor;
-import org.example.immutable.processor.base.ProcessorScope;
+import org.example.immutable.Immutable;
 import org.example.immutable.processor.model.ImmutableImpl;
 import org.example.immutable.processor.test.TestCompiler;
 import org.example.immutable.processor.test.TestImmutableImpls;
+import org.example.processor.base.IsolatingLiteProcessor;
+import org.example.processor.base.ProcessorScope;
 import org.junit.jupiter.api.Test;
 
 public final class ImmutableGeneratorTest {
@@ -29,18 +31,24 @@ public final class ImmutableGeneratorTest {
     }
 
     @ProcessorScope
-    public static final class TestLiteProcessor extends ImmutableBaseLiteProcessor {
+    public static final class TestLiteProcessor extends IsolatingLiteProcessor<TypeElement> {
 
         private final ImmutableGenerator generator;
 
         @Inject
         TestLiteProcessor(ImmutableGenerator generator) {
+            super(Immutable.class);
             this.generator = generator;
         }
 
         @Override
-        protected void process(TypeElement typeElement) {
-            loadImmutableImpl(typeElement).ifPresent(impl -> generator.generateSource(impl, typeElement));
+        protected void process(TypeElement typeElement) throws IOException {
+            Optional<ImmutableImpl> maybeImpl = loadImmutableImpl(typeElement);
+            if (maybeImpl.isEmpty()) {
+                return;
+            }
+            ImmutableImpl impl = maybeImpl.get();
+            generator.generateSource(impl, typeElement);
         }
 
         private Optional<ImmutableImpl> loadImmutableImpl(TypeElement typeElement) {

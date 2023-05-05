@@ -4,10 +4,10 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.TypeMirror;
-import org.example.immutable.processor.base.ProcessorScope;
 import org.example.immutable.processor.error.Errors;
 import org.example.immutable.processor.model.ImmutableMember;
 import org.example.immutable.processor.model.MemberType;
+import org.example.processor.base.ProcessorScope;
 
 /** Creates {@link ImmutableMember}'s from {@link ExecutableElement}'s. */
 @ProcessorScope

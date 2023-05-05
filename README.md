@@ -87,11 +87,7 @@ class ImmutableRectangle implements Rectangle {
 
 ### I just want to jump into the code. Where do I start?
 
-- [`ImmutableLiteProcessor`](immutable-processor/src/main/java/org/example/immutable/processor/ImmutableLiteProcessor.java)
-  is a good entry point.
-- You could also look at the [individual PRs](https://github.com/mikewacker/annotation-processor-example/pulls?q=is%3Apr+is%3Aclosed).
-  - PRs #1-3 set up the basic infrastructure.
-  - PRs #4-14 implement the processing logic incrementally.
+[`ImmutableLiteProcessor`](immutable-processor/src/main/java/org/example/immutable/processor/ImmutableLiteProcessor.java)
 
 ### How do I debug the annotation processor?
 
@@ -110,7 +106,7 @@ class ImmutableRectangle implements Rectangle {
 We will start with [`ImmutableLiteProcessor`](immutable-processor/src/main/java/org/example/immutable/processor/ImmutableLiteProcessor.java)
 and first work downstream from there.
 
-- `ImmutableLiteProcessor` implements a single method, `process(TypeElement typeElement)`.
+- `ImmutableLiteProcessor` implements a single method: `void process(TypeElement annotatedElement) throws Exception`
 - The `TypeElement` corresponds to a type that is annotated with `@Immutable`.
 
 ### Overview
@@ -128,16 +124,25 @@ The annotation processor is split into two stages:
    - The code lives in the
      [`org.example.immutable.processor.generator`](immutable-processor/src/main/java/org/example/immutable/processor/generator) package.
 
-A single line of code in `ImmutableLiteProcessor` runs both stages.
+[`ImmutableLiteProcessor`](immutable-processor/src/main/java/org/example/immutable/processor/ImmutableLiteProcessor.java)
+runs both stages:
 
 ```java
-implFactory.create(typeElement).ifPresent(impl -> generator.generateSource(impl, typeElement));
+@Override
+protected void process(TypeElement typeElement) throws IOException {
+    Optional<ImmutableImpl> maybeImpl = implFactory.create(typeElement);
+    if (maybeImpl.isEmpty()) {
+        return;
+    }
+    ImmutableImpl impl = maybeImpl.get();
+    generator.generateSource(impl, typeElement);
+}
 ```
 
 [`ImmutableImpl`](immutable-processor/src/main/java/org/example/immutable/processor/model/ImmutableImpl.java)
 lives in the [`org.example.immutable.processor.model`](immutable-processor/src/main/java/org/example/immutable/processor/model) package.
 
-- Types in this package are `@Value.Immutable` interfaces (with some `@Value.Derived` members).
+- Types in this package are `@Value.Immutable` interfaces.
 - Types in this package can easily be created directly.
 - Most types in this package have a corresponding factory class in the `modeler` package.
 
@@ -154,7 +159,7 @@ Annotation processors will use many objects that are provided as part of Java's
   and [`Types`](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/lang/model/util/Types.html)
   provide utilities for working with `Element`'s and `TypeMirror`'s.
 
-[`ProcessorModule`](immutable-processor/src/main/java/org/example/immutable/processor/base/ProcessorModule.java)
+[`ProcessorModule`](processor/src/main/java/org/example/processor/base/ProcessorModule.java)
 provides these objects; if you need them, you can put them in an `@Inject`'able constructor.
 
 ### Incremental Annotation Processing
@@ -198,33 +203,30 @@ This allows processing to continue for non-fatal errors. (Your compiler typicall
 
 So how do we work upstream from `ImmutableLiteProcessor` to `ImmutableProcessor`?
 
-- Most of the infrastructure lives in the
-  [`org.example.immutable.processor.base`](immutable-processor/src/main/java/org/example/immutable/processor/base) package.
-- `ImmutableProcessor` and `ImmutableLiteProcessor` live in the
-  [`org.example.immutable.processor`](immutable-processor/src/main/java/org/example/immutable/processor) package.
+These classes rely on generic infrastructure in the
+[`org.example.processor.base`](processor/src/main/java/org/example/processor/base) package:
 
-#### "Lite" Processors
+- [`LiteProcessor`](processor/src/main/java/org/example/processor/base/LiteProcessor.java) interface
+  - Lightweight, simple version of Java's
+    [`Processor`](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/annotation/processing/Processor.html)
+  - Contains a single method:
+    `void process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) throws Exception`
+- [`IsolatingLiteProcessor<E extends Element>`](processor/src/main/java/org/example/processor/base/IsolatingLiteProcessor.java) abstract class
+  - Partially implements `LiteProcessor`
+  - Designed for isolating annotation processors where each output is generated from a single input
+  - Contains a single abstract method: `void process(E annotatedElement) throws Exception`
+- [`AdapterProcessor`](immutable-processor/src/main/java/org/example/immutable/processor/ImmutableLiteProcessor.java) abstract class
+  - Partially implements `Processor`
+  - Adapts a `LiteProcessor` to a `Processor`
+  - The `LiteProcessor` is provided by an abstract method:
+    `LiteProcessor createLiteProcessor(ProcessingEnvironment processingEnv)`
 
-- [`LiteProcessor`](immutable-processor/src/main/java/org/example/immutable/processor/base/LiteProcessor.java) interface
-  - Simplifies Java's [`Processor`](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/annotation/processing/Processor.html) interface.
-  - Contains a single method, `process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv)`.
-- [`ImmutableBaseLiteProcessor`](immutable-processor/src/main/java/org/example/immutable/processor/base/ImmutableBaseLiteProcessor.java) abstract class
-  - Implements `process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv)`.
-    - Finds all types annotated with `@Immutable`.
-    - Processes each type with the abstract `process(TypeElement typeElement)` method.
-- [`ImmutableLiteProcessor`](immutable-processor/src/main/java/org/example/immutable/processor/ImmutableLiteProcessor.java) final class
-  - Implements `process(TypeElement typeElement)` to process each type.
+Here is how the annotation processor for `@Immutable` consumes this infrastructure:
 
-#### "Full" Processors
-
-- [`Processor`](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/annotation/processing/Processor.html) interface (Java)
-- [`ImmutableBaseProcessor`](immutable-processor/src/main/java/org/example/immutable/processor/base/ImmutableBaseProcessor.java) abstract class
-  - Implements boilerplate processing logic.
-  - Provides a `LiteProcessor` via the abstract `initLiteProcessor(ProcessingEnvironment processingEnv)` method.
-  - Delegates core processing logic to the `LiteProcessor`.
-- [`ImmutableProcessor`](immutable-processor/src/main/java/org/example/immutable/processor/ImmutableProcessor.java) final class
-  - Implements `initLiteProcessor(ProcessingEnvironment processingEnv)` to return an `ImmutableLiteProcessor`.
-  - Uses dependency injection (via [Dagger](https://dagger.dev/)) to create the `ImmutableLiteProcessor`.
+- [`ImmutableLiteProcessor`](immutable-processor/src/main/java/org/example/immutable/processor/ImmutableProcessor.java)
+  extends `IsolatingLiteProcessor<TypeElement>`
+- [`ImmutableProcessor`](immutable-processor/src/main/java/org/example/immutable/processor/ImmutableProcessor.java)
+  extends `AdapterProcessor`
 
 ## End-to-End Testing
 
@@ -343,83 +345,37 @@ The unit testing strategy for the `modeler` stage is built around custom annotat
 
 #### Creating Custom Annotation Processors
 
-`TestCompiler.create()` has another overload, `TestCompiler.create(Class<? extends LiteProcessor> liteProcessorClass)`.
+`TestCompiler.create()` has another overload: `TestCompiler.create(Class<? extends LiteProcessor> liteProcessorClass)`
 
-```java
-/**
- * Creates a compiler with {@link ImmutableBaseProcessor} and a custom {@link LiteProcessor}.
- *
- * <p>To be used, the {@link LiteProcessor} class must also be added to {@link TestProcessorModule}.</p>
- */
-public static TestCompiler create(Class<? extends LiteProcessor> liteProcessorClass) {
-    Processor processor = new TestImmutableProcessor(liteProcessorClass);
-    return new TestCompiler(processor);
-}
-```
-
-In practice, the custom `LiteProcessor` class will usually extend `ImmutableBaseLiteProcessor`,
-and `TestCompiler.TestImmutableProcessor` itself extends `ImmutableBaseProcessor`.
-(`ImmutableBaseLiteProcessor` and `ImmutableBaseProcessor` were designed so that it is easy
-to create multiple annotation processors without repeating yourself.)
-
-The simplest example is [`ImmutableBaseLiteProcessorTest.TestLiteProcessor`](immutable-processor/src/test/java/org/example/immutable/processor/base/ImmutableBaseLiteProcessorTest.java),
-where the Java object is a `String` containing the fully qualified name of the type.
-
-```java
-@ProcessorScope
-public static final class TestLiteProcessor extends ImmutableBaseLiteProcessor {
-
-    private final Elements elementUtils;
-    private final Filer filer;
-
-    @Inject
-    TestLiteProcessor(Elements elementUtils, Filer filer) {
-        this.elementUtils = elementUtils;
-        this.filer = filer;
-    }
-
-    @Override
-    protected void process(TypeElement typeElement) {
-        String qualifiedName = typeElement.getQualifiedName().toString();
-        TestResources.saveObject(filer, typeElement, elementUtils, qualifiedName);
-    }
-}
-```
-
-One slight drawback to this design is that every test implementation of `LiteProcessor`
-needs to be added to [`TestProcessorModule`](immutable-processor/src/test/java/org/example/immutable/processor/test/TestProcessorModule.java).
-
-```java
-@Binds
-@ProcessorScope
-@IntoMap
-@LiteProcessorClassKey(ImmutableBaseLiteProcessorTest.TestLiteProcessor.class)
-LiteProcessor bindImmutableBaseLiteProcessorTestLiteProcessor(
-        ImmutableBaseLiteProcessorTest.TestLiteProcessor liteProcessor);
-```
+- It uses [`TestImmutableProcessor`](immutable-processor/src/test/java/org/example/immutable/processor/test/TestImmutableProcessor.java),
+  which uses a custom implementation of `LiteProcessor`.
+- A unit test can create a test implementation of `LiteProcessor`.
+- One slight drawback is that every test implementation of `LiteProcessor` needs to be added to
+  [`TestProcessorModule`](immutable-processor/src/test/java/org/example/immutable/processor/test/TestProcessorModule.java).
 
 #### Generating Resource Files
 
 [`TestResources`](immutable-processor/src/test/java/org/example/immutable/processor/test/TestResources.java)
 handles the details of saving Java objects to generated resource files and then loading those objects.
 
-See this snippet (again) from `ImmutableBaseLiteProcessorTest.TestLiteProcessor`, which saves the Java object:
+See this snippet from
+[`ImmutableImplsTest.TestLiteProcessor`](immutable-processor/src/test/java/org/example/immutable/processor/modeler/ImmutableImplsTest.java),
+which saves the Java object:
 
 ```java
 @Override
 protected void process(TypeElement typeElement) {
-    String qualifiedName = typeElement.getQualifiedName().toString();
-    TestResources.saveObject(filer, typeElement, elementUtils, qualifiedName);
+    implFactory.create(typeElement).ifPresent(impl -> TestResources.saveObject(filer, typeElement, impl));
 }
 ```
 
-...and this snippet from `ImmutableBaseLiteProcessorTest`, which loads the Java object and verifies it:
+...and this snippet from `ImmutableImplsTest`, which loads the Java object and verifies it:
 
 ```java
-private void getQualifiedName(String sourcePath, String expectedQualifiedName) throws Exception {
+private void create(String sourcePath, ImmutableImpl expectedImpl) throws Exception {
     Compilation compilation = TestCompiler.create(TestLiteProcessor.class).compile(sourcePath);
-    String qualifiedName = TestResources.loadObjectForSource(compilation, sourcePath, new TypeReference<>() {});
-    assertThat(qualifiedName).isEqualTo(expectedQualifiedName);
+    ImmutableImpl impl = TestResources.loadObjectForSource(compilation, sourcePath, new TypeReference<>() {});
+    assertThat(impl).isEqualTo(expectedImpl);
 }
 ```
 
@@ -436,7 +392,6 @@ does most of the work, namely `SourceWriter.writeSource(Writer writer, Immutable
 - For [`SourceWriterTest`](immutable-processor/src/test/java/org/example/immutable/processor/generator/SourceWriterTest.java) in `test`:
   - A `StringWriter` is used so that the source code can be written to a `String`.
   - The `ImmutableImpl` is sourced from `TestImmutableImpls` (or created directly).
-
 
 [`ImmutableGeneratorTest`](immutable-processor/src/test/java/org/example/immutable/processor/generator/ImmutableGeneratorTest.java)
 also does some light end-to-end testing for the `generator` stage.

@@ -11,10 +11,10 @@ import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import org.example.immutable.Immutable;
-import org.example.immutable.processor.base.ProcessorScope;
 import org.example.immutable.processor.error.Errors;
 import org.example.immutable.processor.model.ImmutableType;
 import org.example.immutable.processor.model.MemberType;
+import org.example.processor.base.ProcessorScope;
 import org.example.processor.type.ImportableType;
 
 /** Creates {@link ImmutableType}'s from {@link TypeElement}'s. */

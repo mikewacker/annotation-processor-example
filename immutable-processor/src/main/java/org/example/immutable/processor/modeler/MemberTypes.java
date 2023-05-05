@@ -22,6 +22,7 @@ import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.Elements;
 import org.example.immutable.processor.error.Errors;
 import org.example.immutable.processor.model.MemberType;
+import org.example.processor.base.ProcessorScope;
 import org.example.processor.type.ImportableType;
 
 /**
@@ -29,6 +30,7 @@ import org.example.processor.type.ImportableType;
  *
  * <p>The source {@link Element} is also provided for error reporting purposes.</p>
  */
+@ProcessorScope
 final class MemberTypes {
 
     public static final MemberType ERROR_TYPE = MemberType.of("!");

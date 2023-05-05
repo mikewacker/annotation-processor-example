@@ -8,13 +8,14 @@ import javax.annotation.processing.Filer;
 import javax.inject.Inject;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
-import org.example.immutable.processor.base.ImmutableBaseLiteProcessor;
-import org.example.immutable.processor.base.ProcessorScope;
+import org.example.immutable.Immutable;
 import org.example.immutable.processor.model.ImmutableMember;
 import org.example.immutable.processor.test.CompilationError;
 import org.example.immutable.processor.test.TestCompiler;
 import org.example.immutable.processor.test.TestImmutableImpls;
 import org.example.immutable.processor.test.TestResources;
+import org.example.processor.base.IsolatingLiteProcessor;
+import org.example.processor.base.ProcessorScope;
 import org.junit.jupiter.api.Test;
 
 public final class ImmutableMembersTest {
@@ -59,7 +60,7 @@ public final class ImmutableMembersTest {
     }
 
     @ProcessorScope
-    public static final class TestLiteProcessor extends ImmutableBaseLiteProcessor {
+    public static final class TestLiteProcessor extends IsolatingLiteProcessor<TypeElement> {
 
         private final ImmutableMembers memberFactory;
         private final ElementNavigator navigator;
@@ -67,6 +68,7 @@ public final class ImmutableMembersTest {
 
         @Inject
         TestLiteProcessor(ImmutableMembers memberFactory, ElementNavigator navigator, Filer filer) {
+            super(Immutable.class);
             this.memberFactory = memberFactory;
             this.navigator = navigator;
             this.filer = filer;
