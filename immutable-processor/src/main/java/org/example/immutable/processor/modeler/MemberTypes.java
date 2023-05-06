@@ -20,9 +20,10 @@ import javax.lang.model.type.TypeVisitor;
 import javax.lang.model.type.UnionType;
 import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.Elements;
-import org.example.immutable.processor.error.Errors;
+import javax.tools.Diagnostic;
 import org.example.immutable.processor.model.MemberType;
 import org.example.processor.base.ProcessorScope;
+import org.example.processor.diagnostic.Diagnostics;
 import org.example.processor.type.ImportableType;
 
 /**
@@ -35,18 +36,18 @@ final class MemberTypes {
 
     public static final MemberType ERROR_TYPE = MemberType.of("!");
 
-    private final Errors errorReporter;
+    private final Diagnostics diagnostics;
     private final Elements elementUtils;
 
     @Inject
-    MemberTypes(Errors errorReporter, Elements elementUtils) {
-        this.errorReporter = errorReporter;
+    MemberTypes(Diagnostics diagnostics, Elements elementUtils) {
+        this.diagnostics = diagnostics;
         this.elementUtils = elementUtils;
     }
 
     /** Creates a {@link MemberType} from a {@link TypeMirror}, or empty if validation fails. */
     public Optional<MemberType> create(TypeMirror typeMirror, Element sourceElement) {
-        try (Errors.Tracker errorTracker = errorReporter.createErrorTracker()) {
+        try (Diagnostics.ErrorTracker errorTracker = diagnostics.trackErrors()) {
             MemberType typeModel = new Builder(sourceElement).build(typeMirror);
             return errorTracker.checkNoErrors(typeModel);
         }
@@ -180,7 +181,7 @@ final class MemberTypes {
 
         /** Reports an error and returns an error type. */
         private MemberType error(String message) {
-            errorReporter.error(message, sourceElement);
+            diagnostics.add(Diagnostic.Kind.ERROR, message, sourceElement);
             return ERROR_TYPE;
         }
     }

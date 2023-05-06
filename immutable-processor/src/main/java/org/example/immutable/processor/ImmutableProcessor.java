@@ -7,6 +7,7 @@ import java.util.Set;
 import javax.annotation.processing.Completion;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.Processor;
+import javax.inject.Named;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
@@ -23,6 +24,8 @@ import org.example.processor.base.ProcessorScope;
 @AutoService(Processor.class)
 @IncrementalAnnotationProcessor(IncrementalAnnotationProcessorType.ISOLATING)
 public final class ImmutableProcessor extends AdapterProcessor {
+
+    private static final String DIAGNOSTIC_TAG = String.format("@%s", Immutable.class.getSimpleName());
 
     @Override
     public Set<String> getSupportedOptions() {
@@ -56,7 +59,7 @@ public final class ImmutableProcessor extends AdapterProcessor {
     interface ProcessorComponent {
 
         static ProcessorComponent of(ProcessingEnvironment processingEnv) {
-            return DaggerImmutableProcessor_ProcessorComponent.factory().create(processingEnv);
+            return DaggerImmutableProcessor_ProcessorComponent.factory().create(processingEnv, DIAGNOSTIC_TAG);
         }
 
         ImmutableLiteProcessor liteProcessor();
@@ -64,7 +67,9 @@ public final class ImmutableProcessor extends AdapterProcessor {
         @Component.Factory
         interface Factory {
 
-            ProcessorComponent create(@BindsInstance ProcessingEnvironment processingEnv);
+            ProcessorComponent create(
+                    @BindsInstance ProcessingEnvironment processingEnv,
+                    @BindsInstance @Named("diagnosticTag") String diagnosticTag);
         }
     }
 }
