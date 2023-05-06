@@ -176,28 +176,22 @@ The following steps are needed to enable incremental annotation processing:
 
 ### Reporting Compilation Errors
 
-[`Errors`](immutable-processor/src/main/java/org/example/immutable/processor/error/Errors.java)
-serves as a useful wrapper around the `Messager`. `Messager` should not be used directly.
+[`Diagnostics`](processor/src/main/java/org/example/processor/diagnostic/Diagnostics.java)
+is used to report any diagnostics, including compilation errors. It serves as a wrapper around `Messager`.
 
-The `Element` should usually be included when an error is reported.
-This `Element` provides the compiler with a location for the error:
-the line and column number where the `Element` occurs in the source code.
-
-`Errors` also provides an `Errors.Tracker` class, which is an `AutoCloseable` type.
-This class will convert the final result to `Optional.empty()` if an error was reported in the try-with-resources block.
-
+The main reason it wraps `Messager` is to enable error tracking.
+The error tracker converts the result to `Optional.empty()` if `Diagnostics.add(Diagnostic.Kind.ERROR, ...)` is called.
+This allows processing to continue for non-fatal errors; compilers don't stop on the first error.
 See this condensed snippet from
 [`ImmutableImpls`](immutable-processor/src/main/java/org/example/immutable/processor/modeler/ImmutableImpls.java):
 
 ```java
-try (Errors.Tracker errorTracker = errorReporter.createErrorTracker()) {
+try (Diagnostics.ErrorTracker errorTracker = diagnostics.trackErrors()) {
     // [snip]
     ImmutableImpl impl = ImmutableImpl.of(type, members);
     return errorTracker.checkNoErrors(impl);
 }
 ```
-
-This allows processing to continue for non-fatal errors. (Your compiler typically does not stop on the first error.)
 
 ###  Upstream Design
 

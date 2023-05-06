@@ -6,6 +6,7 @@ import java.util.Set;
 import javax.annotation.processing.Completion;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.Processor;
+import javax.inject.Named;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
@@ -18,6 +19,8 @@ import org.example.processor.base.ProcessorScope;
 
 /** Processes interfaces annotated with {@link Immutable}, using the provided {@link LiteProcessor}. */
 final class TestImmutableProcessor extends AdapterProcessor {
+
+    private static final String DIAGNOSTIC_TAG = String.format("@%s", Immutable.class.getSimpleName());
 
     private final Class<? extends LiteProcessor> liteProcessorClass;
 
@@ -62,7 +65,8 @@ final class TestImmutableProcessor extends AdapterProcessor {
 
         static ProcessorComponent of(
                 ProcessingEnvironment processingEnv, Class<? extends LiteProcessor> liteProcessorClass) {
-            return DaggerTestImmutableProcessor_ProcessorComponent.factory().create(processingEnv, liteProcessorClass);
+            return DaggerTestImmutableProcessor_ProcessorComponent.factory()
+                    .create(processingEnv, DIAGNOSTIC_TAG, liteProcessorClass);
         }
 
         LiteProcessor liteProcessor();
@@ -72,6 +76,7 @@ final class TestImmutableProcessor extends AdapterProcessor {
 
             ProcessorComponent create(
                     @BindsInstance ProcessingEnvironment processingEnv,
+                    @BindsInstance @Named("diagnosticTag") String diagnosticTag,
                     @BindsInstance Class<? extends LiteProcessor> liteProcessorClass);
         }
     }

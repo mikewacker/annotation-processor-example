@@ -10,11 +10,12 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
+import javax.tools.Diagnostic;
 import org.example.immutable.Immutable;
-import org.example.immutable.processor.error.Errors;
 import org.example.immutable.processor.model.ImmutableType;
 import org.example.immutable.processor.model.MemberType;
 import org.example.processor.base.ProcessorScope;
+import org.example.processor.diagnostic.Diagnostics;
 import org.example.processor.type.ImportableType;
 
 /** Creates {@link ImmutableType}'s from {@link TypeElement}'s. */
@@ -24,19 +25,19 @@ final class ImmutableTypes {
     private static final String OBJECT_CANONICAL_NAME = Object.class.getCanonicalName();
 
     private final MemberTypes typeFactory;
-    private final Errors errorReporter;
+    private final Diagnostics diagnostics;
     private final Elements elementUtils;
 
     @Inject
-    ImmutableTypes(MemberTypes typeFactory, Errors errorReporter, Elements elementUtils) {
+    ImmutableTypes(MemberTypes typeFactory, Diagnostics diagnostics, Elements elementUtils) {
         this.typeFactory = typeFactory;
-        this.errorReporter = errorReporter;
+        this.diagnostics = diagnostics;
         this.elementUtils = elementUtils;
     }
 
     /** Creates an {@link ImmutableType}, or empty if validation fails. */
     public Optional<ImmutableType> create(TypeElement typeElement) {
-        try (Errors.Tracker errorTracker = errorReporter.createErrorTracker()) {
+        try (Diagnostics.ErrorTracker errorTracker = diagnostics.trackErrors()) {
             // Create the raw types.
             ImportableType rawInterfaceType = createRawInterfaceType(typeElement);
             ImportableType flatInterfaceType = createFlatInterfaceType(rawInterfaceType, typeElement);
@@ -113,7 +114,7 @@ final class ImmutableTypes {
 
     private boolean checkIsInterface(TypeElement typeElement) {
         return !typeElement.getKind().isInterface()
-                ? errorReporter.error("type must be an interface", typeElement)
+                ? diagnostics.add(Diagnostic.Kind.ERROR, "type must be an interface", typeElement)
                 : true;
     }
 
@@ -122,7 +123,7 @@ final class ImmutableTypes {
                 element.getKind() != ElementKind.PACKAGE;
                 element = element.getEnclosingElement()) {
             if (element.getModifiers().contains(Modifier.PRIVATE)) {
-                return errorReporter.error("interface must not be privately visible", typeElement);
+                return diagnostics.add(Diagnostic.Kind.ERROR, "interface must not be privately visible", typeElement);
             }
         }
         return true;
@@ -148,7 +149,7 @@ final class ImmutableTypes {
         }
 
         String message = String.format("flat interface type already exists as @Immutable type: %s", qualifiedName);
-        return errorReporter.error(message, sourceElement);
+        return diagnostics.add(Diagnostic.Kind.ERROR, message, sourceElement);
     }
 
     /** Checks that the implementation type to be generated does not already exist. */
@@ -159,6 +160,6 @@ final class ImmutableTypes {
         }
 
         String message = String.format("implementation type already exists: %s", qualifiedName);
-        return errorReporter.error(message, sourceElement);
+        return diagnostics.add(Diagnostic.Kind.ERROR, message, sourceElement);
     }
 }

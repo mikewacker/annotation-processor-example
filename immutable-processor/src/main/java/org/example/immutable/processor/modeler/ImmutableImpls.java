@@ -4,12 +4,12 @@ import java.util.List;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.lang.model.element.TypeElement;
-import org.example.immutable.processor.error.Errors;
 import org.example.immutable.processor.model.ImmutableImpl;
 import org.example.immutable.processor.model.ImmutableMember;
 import org.example.immutable.processor.model.ImmutableType;
 import org.example.immutable.processor.model.MemberType;
 import org.example.processor.base.ProcessorScope;
+import org.example.processor.diagnostic.Diagnostics;
 import org.example.processor.type.ImportableType;
 
 /** Creates {@link ImmutableImpl}'s from {@link TypeElement}'s. */
@@ -23,23 +23,23 @@ public final class ImmutableImpls {
     private final ImmutableTypes typeFactory;
     private final ImmutableMembers memberFactory;
     private final ElementNavigator navigator;
-    private final Errors errorReporter;
+    private final Diagnostics diagnostics;
 
     @Inject
     ImmutableImpls(
             ImmutableTypes typeFactory,
             ImmutableMembers memberFactory,
             ElementNavigator navigator,
-            Errors errorReporter) {
+            Diagnostics diagnostics) {
         this.typeFactory = typeFactory;
         this.memberFactory = memberFactory;
         this.navigator = navigator;
-        this.errorReporter = errorReporter;
+        this.diagnostics = diagnostics;
     }
 
     /** Creates an {@link ImmutableImpl}, or empty if validation fails. */
     public Optional<ImmutableImpl> create(TypeElement typeElement) {
-        try (Errors.Tracker errorTracker = errorReporter.createErrorTracker()) {
+        try (Diagnostics.ErrorTracker errorTracker = diagnostics.trackErrors()) {
             ImmutableType type = typeFactory.create(typeElement).orElse(ERROR_TYPE);
             List<ImmutableMember> members = navigator
                     .getMethodsToImplement(typeElement)
