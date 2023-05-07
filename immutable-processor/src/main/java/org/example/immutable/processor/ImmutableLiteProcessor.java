@@ -32,6 +32,6 @@ final class ImmutableLiteProcessor extends IsolatingLiteProcessor<TypeElement> {
             return;
         }
         ImmutableImpl impl = maybeImpl.get();
-        generator.generateSource(impl, typeElement);
+        generator.generateSourceFile(impl, typeElement);
     }
 }

@@ -147,11 +147,11 @@ public final class MemberTypesTest {
 
         @Override
         protected void process(TypeElement typeElement) {
-            ExecutableElement sourceElement =
+            ExecutableElement originatingElement =
                     navigator.getMethodsToImplement(typeElement).findFirst().get();
-            TypeMirror returnType = sourceElement.getReturnType();
+            TypeMirror returnType = originatingElement.getReturnType();
             typeFactory
-                    .create(returnType, sourceElement)
+                    .create(returnType, originatingElement)
                     .ifPresent(type -> TestResources.saveObject(filer, typeElement, type));
         }
     }

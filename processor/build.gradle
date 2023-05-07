@@ -17,4 +17,5 @@ dependencies {
 
     testImplementation 'com.google.guava:guava-testlib'
     testImplementation 'com.google.testing.compile:compile-testing'
+    testImplementation 'org.mockito:mockito-core'
 }

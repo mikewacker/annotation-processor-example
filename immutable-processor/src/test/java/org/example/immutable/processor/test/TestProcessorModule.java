@@ -9,7 +9,6 @@ import dagger.multibindings.IntoMap;
 import java.util.Map;
 import java.util.Objects;
 import javax.annotation.processing.Processor;
-import org.example.immutable.processor.generator.ImmutableGeneratorTest;
 import org.example.immutable.processor.modeler.ElementNavigatorTest;
 import org.example.immutable.processor.modeler.ImmutableImplsTest;
 import org.example.immutable.processor.modeler.ImmutableMembersTest;
@@ -48,16 +47,6 @@ interface TestProcessorModule {
     /*
      * Add test implementations of LiteProcessor below (in import order).
      */
-
-    // org.example.immutable.processor.generator
-
-    @Binds
-    @ProcessorScope
-    @IntoMap
-    @LiteProcessorClassKey(ImmutableGeneratorTest.TestLiteProcessor.class)
-    LiteProcessor bindImmutableGeneratorTest_TestLiteProcessor(ImmutableGeneratorTest.TestLiteProcessor liteProcessor);
-
-    // org.example.immutable.processor.modeler
 
     @Binds
     @ProcessorScope

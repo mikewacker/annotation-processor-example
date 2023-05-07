@@ -32,10 +32,10 @@ public final class ImmutableProcessorTest {
                 "generated/test/ImmutableColoredRectangle.java");
     }
 
-    private void compile(String sourcePath, String generatedQualifiedName, String expectedGeneratedSourcePath) {
+    private void compile(String sourcePath, String generatedSourceName, String expectedGeneratedSourcePath) {
         Compilation compilation = TestCompiler.create().compile(sourcePath);
         assertThat(compilation)
-                .generatedSourceFile(generatedQualifiedName)
+                .generatedSourceFile(generatedSourceName)
                 .hasSourceEquivalentTo(JavaFileObjects.forResource(expectedGeneratedSourcePath));
     }
 

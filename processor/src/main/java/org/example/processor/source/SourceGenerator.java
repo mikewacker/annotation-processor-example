@@ -3,16 +3,16 @@ package org.example.processor.source;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-/** Generates the source code for an entity. */
+/** Generates source code from an object model. */
 @FunctionalInterface
-public interface SourceGenerator<E> {
+public interface SourceGenerator<M> {
 
-    void generateSource(PrintWriter writer, E entity);
+    void generateSource(PrintWriter writer, M model);
 
-    default String toSource(E entity) {
+    default String toSource(M model) {
         StringWriter stringWriter = new StringWriter();
         PrintWriter writer = new PrintWriter(stringWriter);
-        generateSource(writer, entity);
+        generateSource(writer, model);
         return stringWriter.toString();
     }
 }

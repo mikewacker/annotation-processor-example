@@ -27,6 +27,7 @@ dependencies {
     testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-guava'
     testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
     testImplementation 'com.google.testing.compile:compile-testing'
+    testImplementation 'org.mockito:mockito-core'
 }
 
 test {

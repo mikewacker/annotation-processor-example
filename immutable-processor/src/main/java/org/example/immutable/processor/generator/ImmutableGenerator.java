@@ -1,30 +1,29 @@
 package org.example.immutable.processor.generator;
 
-import java.io.IOException;
-import java.io.Writer;
 import javax.annotation.processing.Filer;
 import javax.inject.Inject;
 import javax.lang.model.element.TypeElement;
-import javax.tools.JavaFileObject;
 import org.example.immutable.processor.model.ImmutableImpl;
 import org.example.processor.base.ProcessorScope;
+import org.example.processor.source.IsolatingSourceFileGenerator;
+import org.example.processor.source.SourceGenerator;
 
-/** Generates source code for {@link ImmutableImpl}'s. */
+/** Generates source files from {@link ImmutableImpl}'s. */
 @ProcessorScope
-public final class ImmutableGenerator {
-
-    private final Filer filer;
+public final class ImmutableGenerator extends IsolatingSourceFileGenerator<ImmutableImpl, TypeElement> {
 
     @Inject
     ImmutableGenerator(Filer filer) {
-        this.filer = filer;
+        super(filer);
     }
 
-    /** Generates the source code for the provided {@link ImmutableImpl}. */
-    public void generateSource(ImmutableImpl impl, TypeElement typeElement) throws IOException {
-        JavaFileObject sourceFile = filer.createSourceFile(impl.sourceName(), typeElement);
-        try (Writer writer = sourceFile.openWriter()) {
-            SourceWriter.writeSource(writer, impl);
-        }
+    @Override
+    protected String getSourceName(ImmutableImpl model) {
+        return model.sourceName();
+    }
+
+    @Override
+    protected SourceGenerator<ImmutableImpl> createSourceGenerator(ImmutableImpl model) {
+        return SourceWriter::writeSource;
     }
 }
