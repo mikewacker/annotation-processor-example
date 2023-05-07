@@ -29,7 +29,7 @@ import org.example.processor.type.ImportableType;
 /**
  * Creates {@link MemberType}'s from {@link TypeMirror}'s.
  *
- * <p>The source {@link Element} is also provided for error reporting purposes.</p>
+ * <p>The originating {@link Element} is also provided for error reporting purposes.</p>
  */
 @ProcessorScope
 final class MemberTypes {
@@ -46,9 +46,9 @@ final class MemberTypes {
     }
 
     /** Creates a {@link MemberType} from a {@link TypeMirror}, or empty if validation fails. */
-    public Optional<MemberType> create(TypeMirror typeMirror, Element sourceElement) {
+    public Optional<MemberType> create(TypeMirror typeMirror, Element originatingElement) {
         try (Diagnostics.ErrorTracker errorTracker = diagnostics.trackErrors()) {
-            MemberType typeModel = new Builder(sourceElement).build(typeMirror);
+            MemberType typeModel = new Builder(originatingElement).build(typeMirror);
             return errorTracker.checkNoErrors(typeModel);
         }
     }
@@ -56,10 +56,10 @@ final class MemberTypes {
     /** Recursively builds the {@link MemberType} from the {@link TypeMirror}. */
     private class Builder implements TypeVisitor<MemberType, Void> {
 
-        private final Element sourceElement;
+        private final Element originatingElement;
 
-        public Builder(Element sourceElement) {
-            this.sourceElement = sourceElement;
+        public Builder(Element originatingElement) {
+            this.originatingElement = originatingElement;
         }
 
         public MemberType build(TypeMirror typeMirror) {
@@ -181,7 +181,7 @@ final class MemberTypes {
 
         /** Reports an error and returns an error type. */
         private MemberType error(String message) {
-            diagnostics.add(Diagnostic.Kind.ERROR, message, sourceElement);
+            diagnostics.add(Diagnostic.Kind.ERROR, message, originatingElement);
             return ERROR_TYPE;
         }
     }

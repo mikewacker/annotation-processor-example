@@ -9,3 +9,4 @@ net.ltgt.gradle.incap:* = 1.0.0
 org.assertj:assertj-core = 3.23.1
 org.immutables:* = 2.9.2
 org.junit.jupiter:* = 5.9.1
+org.mockito:mockito-core = 5.3.1

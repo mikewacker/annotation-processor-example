@@ -65,7 +65,7 @@ final class ImmutableTypes {
     }
 
     /** Flattens a nested type into a top-level type by replacing '.' with '_' in the class name. */
-    private ImportableType createFlatInterfaceType(ImportableType rawInterfaceType, Element sourceElement) {
+    private ImportableType createFlatInterfaceType(ImportableType rawInterfaceType, Element originatingElement) {
         if (rawInterfaceType.isTopLevelType()) {
             return rawInterfaceType;
         }
@@ -73,15 +73,15 @@ final class ImmutableTypes {
         String flatInterfaceClassName = rawInterfaceType.className().replace('.', '_');
         ImportableType flatInterfaceType =
                 ImportableType.ofPackageAndClass(rawInterfaceType.packageName(), flatInterfaceClassName);
-        checkFlatInterfaceTypeDoesNotExistAsImmutable(flatInterfaceType, sourceElement);
+        checkFlatInterfaceTypeDoesNotExistAsImmutable(flatInterfaceType, originatingElement);
         return flatInterfaceType;
     }
 
     /** Creates a raw implementation type from the flat interface type. */
-    private ImportableType createRawImplType(ImportableType flatInterfaceType, Element sourceElement) {
+    private ImportableType createRawImplType(ImportableType flatInterfaceType, Element originatingElement) {
         String implClassName = String.format("Immutable%s", flatInterfaceType.className());
         ImportableType rawImplType = ImportableType.ofPackageAndClass(flatInterfaceType.packageName(), implClassName);
-        checkImplTypeDoesNotExist(rawImplType, sourceElement);
+        checkImplTypeDoesNotExist(rawImplType, originatingElement);
         return rawImplType;
     }
 
@@ -136,7 +136,7 @@ final class ImmutableTypes {
      * then the interface type and the flat interface type would have the same implementation type.</p>
      */
     private boolean checkFlatInterfaceTypeDoesNotExistAsImmutable(
-            ImportableType flatInterfaceType, Element sourceElement) {
+            ImportableType flatInterfaceType, Element originatingElement) {
         String qualifiedName = flatInterfaceType.qualifiedName();
         TypeElement flatTypeElement = elementUtils.getTypeElement(qualifiedName);
         if (flatTypeElement == null) {
@@ -149,17 +149,17 @@ final class ImmutableTypes {
         }
 
         String message = String.format("flat interface type already exists as @Immutable type: %s", qualifiedName);
-        return diagnostics.add(Diagnostic.Kind.ERROR, message, sourceElement);
+        return diagnostics.add(Diagnostic.Kind.ERROR, message, originatingElement);
     }
 
     /** Checks that the implementation type to be generated does not already exist. */
-    private boolean checkImplTypeDoesNotExist(ImportableType rawImplType, Element sourceElement) {
+    private boolean checkImplTypeDoesNotExist(ImportableType rawImplType, Element originatingElement) {
         String qualifiedName = rawImplType.qualifiedName();
         if (elementUtils.getTypeElement(qualifiedName) == null) {
             return true;
         }
 
         String message = String.format("implementation type already exists: %s", qualifiedName);
-        return diagnostics.add(Diagnostic.Kind.ERROR, message, sourceElement);
+        return diagnostics.add(Diagnostic.Kind.ERROR, message, originatingElement);
     }
 }

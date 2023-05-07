@@ -1,62 +1,95 @@
 package org.example.immutable.processor.generator;
 
-import static com.google.testing.compile.CompilationSubject.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import com.google.testing.compile.Compilation;
+import com.google.common.io.CharStreams;
 import com.google.testing.compile.JavaFileObjects;
 import java.io.IOException;
-import java.util.Optional;
-import javax.inject.Inject;
+import java.io.Reader;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.HashMap;
+import java.util.Map;
+import javax.annotation.processing.Filer;
 import javax.lang.model.element.TypeElement;
-import org.example.immutable.Immutable;
+import javax.tools.FileObject;
+import javax.tools.JavaFileObject;
 import org.example.immutable.processor.model.ImmutableImpl;
-import org.example.immutable.processor.test.TestCompiler;
 import org.example.immutable.processor.test.TestImmutableImpls;
-import org.example.processor.base.IsolatingLiteProcessor;
-import org.example.processor.base.ProcessorScope;
 import org.junit.jupiter.api.Test;
 
 public final class ImmutableGeneratorTest {
 
     @Test
-    public void generateSource_Rectangle() {
-        generateSource("test/Rectangle.java", "test.ImmutableRectangle", "generated/test/ImmutableRectangle.java");
+    public void generateSourceFile_Rectangle() throws IOException {
+        generateSourceFile(
+                TestImmutableImpls.rectangle(), "test.ImmutableRectangle", "generated/test/ImmutableRectangle.java");
     }
 
-    private void generateSource(String sourcePath, String generatedQualifiedName, String expectedGeneratedSourcePath) {
-        Compilation compilation = TestCompiler.create(TestLiteProcessor.class).compile(sourcePath);
-        assertThat(compilation)
-                .generatedSourceFile(generatedQualifiedName)
-                .hasSourceEquivalentTo(JavaFileObjects.forResource(expectedGeneratedSourcePath));
+    @Test
+    public void generateSourceFile_ColoredRectangle() throws IOException {
+        generateSourceFile(
+                TestImmutableImpls.coloredRectangle(),
+                "test.ImmutableColoredRectangle",
+                "generated/test/ImmutableColoredRectangle.java");
     }
 
-    @ProcessorScope
-    public static final class TestLiteProcessor extends IsolatingLiteProcessor<TypeElement> {
+    @Test
+    public void generateSourceFile_Empty() throws IOException {
+        generateSourceFile(TestImmutableImpls.empty(), "test.ImmutableEmpty", "generated/test/ImmutableEmpty.java");
+    }
 
-        private final ImmutableGenerator generator;
+    private void generateSourceFile(ImmutableImpl impl, String generatedSourceName, String expectedGeneratedSourcePath)
+            throws IOException {
+        Map<String, StringWriter> filesystem = new HashMap<>();
+        ImmutableGenerator generator = createImmutableGenerator(filesystem);
+        generator.generateSourceFile(impl, mock(TypeElement.class));
+        String sourceCode = getGeneratedSourceCode(filesystem, generatedSourceName);
+        String expectedSourceCode = loadExpectedSourceCode(expectedGeneratedSourcePath);
+        assertThat(sourceCode).isEqualTo(expectedSourceCode);
+    }
 
-        @Inject
-        TestLiteProcessor(ImmutableGenerator generator) {
-            super(Immutable.class);
-            this.generator = generator;
+    private static String getGeneratedSourceCode(Map<String, StringWriter> filesystem, String sourceName) {
+        assertThat(filesystem).containsKey(sourceName);
+        return filesystem.get(sourceName).toString();
+    }
+
+    private static String loadExpectedSourceCode(String sourcePath) throws IOException {
+        FileObject file = JavaFileObjects.forResource(sourcePath);
+        try (Reader reader = file.openReader(false)) {
+            return CharStreams.toString(reader);
         }
+    }
 
-        @Override
-        protected void process(TypeElement typeElement) throws IOException {
-            Optional<ImmutableImpl> maybeImpl = loadImmutableImpl(typeElement);
-            if (maybeImpl.isEmpty()) {
-                return;
-            }
-            ImmutableImpl impl = maybeImpl.get();
-            generator.generateSource(impl, typeElement);
+    private static ImmutableGenerator createImmutableGenerator(Map<String, StringWriter> filesystem) {
+        Filer filer = createFiler(filesystem);
+        return new ImmutableGenerator(filer);
+    }
+
+    private static Filer createFiler(Map<String, StringWriter> filesystem) {
+        try {
+            Filer filer = mock(Filer.class);
+            when(filer.createSourceFile(any(), any())).thenAnswer(invocation -> {
+                String sourceName = invocation.getArgument(0);
+                Writer writer = filesystem.computeIfAbsent(sourceName, k -> new StringWriter());
+                return createSourceFileObject(writer);
+            });
+            return filer;
+        } catch (IOException e) {
+            throw new RuntimeException("unexpected", e);
         }
+    }
 
-        private Optional<ImmutableImpl> loadImmutableImpl(TypeElement typeElement) {
-            String qualifiedName = typeElement.getQualifiedName().toString();
-            return switch (qualifiedName) {
-                case "test.Rectangle" -> Optional.of(TestImmutableImpls.rectangle());
-                default -> Optional.empty();
-            };
+    private static JavaFileObject createSourceFileObject(Writer writer) {
+        try {
+            JavaFileObject sourceFileObject = mock(JavaFileObject.class);
+            when(sourceFileObject.openWriter()).thenReturn(writer);
+            return sourceFileObject;
+        } catch (IOException e) {
+            throw new RuntimeException("unexpected", e);
         }
     }
 }
