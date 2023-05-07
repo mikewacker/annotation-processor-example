@@ -144,7 +144,7 @@ lives in the [`org.example.immutable.processor.model`](immutable-processor/src/m
 
 - Types in this package are `@Value.Immutable` interfaces.
 - Types in this package can easily be created directly.
-- Most types in this package have a corresponding factory class in the `modeler` package.
+- Types in this package have corresponding types in the `modeler` and `generator` packages.
 
 ### Processing Environment
 
@@ -317,10 +317,13 @@ provides pre-built `ImmutableImpl`'s that correspond to the examples sources:
 
 Here are the core testability challenges:
 
-- In the `modeler` stage, it is costly and/or difficult to directly create (or mock out) the various
+- In the `modeler` stage, it is costly and/or difficult to directly create or mock out the various
   [`Element`](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/lang/model/element/Element.html)'s.
-- In the `generator` stage, it is costly and/or difficult and to directly create (or mock out) a
+- In the `generator` stage, it is (somewhat less) costly and/or difficult to directly create or mock out a
   [`Filer`](https://docs.oracle.com/en/java/javase/17/docs/api/java.compiler/javax/annotation/processing/Filer.html).
+  - The unit tests verify the conversion of an object model (e.g., `ImmutableImpl`) to source code.
+  - The end-to-end tests for the stage do mock out a `Filer` (via [Mockito](https://site.mockito.org/)). See
+    [`ImmutableGeneratorTest`](immutable-processor/src/test/java/org/example/immutable/processor/generator/ImmutableGeneratorTest.java).
 
 In both cases, running an annotation processor is the best (known) way to obtain those objects.
 
@@ -372,20 +375,3 @@ private void create(String sourcePath, ImmutableImpl expectedImpl) throws Except
     assertThat(impl).isEqualTo(expectedImpl);
 }
 ```
-
-### `generator` Stage
-
-[`SourceWriter`](immutable-processor/src/main/java/org/example/immutable/processor/generator/SourceWriter.java)
-does most of the work, namely `SourceWriter.writeSource(Writer writer, ImmutableImpl impl)`.
-
-- For [`ImmutableGenerator`](immutable-processor/src/main/java/org/example/immutable/processor/generator/ImmutableGenerator.java) in `main`:
-  - The `Writer` is sourced from the `Filer`.
-    - `Filer.createSourceFile()` is called to obtain a `JavaFileObject`.
-    - `JavaFileObject.openWriter()` is called to obtain a `Writer`.
-  - The `ImmutableImpl` is sourced from `ImmutableImpls`.
-- For [`SourceWriterTest`](immutable-processor/src/test/java/org/example/immutable/processor/generator/SourceWriterTest.java) in `test`:
-  - A `StringWriter` is used so that the source code can be written to a `String`.
-  - The `ImmutableImpl` is sourced from `TestImmutableImpls` (or created directly).
-
-[`ImmutableGeneratorTest`](immutable-processor/src/test/java/org/example/immutable/processor/generator/ImmutableGeneratorTest.java)
-also does some light end-to-end testing for the `generator` stage.

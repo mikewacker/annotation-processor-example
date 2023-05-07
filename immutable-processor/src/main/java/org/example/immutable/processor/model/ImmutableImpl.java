@@ -32,13 +32,6 @@ public interface ImmutableImpl {
     /** Gets the immutable members. */
     List<ImmutableMember> members();
 
-    /** Gets the name of the source. */
-    @Value.Derived
-    @JsonIgnore
-    default String sourceName() {
-        return type().implType().rawType().qualifiedName();
-    }
-
     /** Gets the type qualifier for all top-level types referenced in the implementation. */
     @Value.Derived
     @JsonIgnore

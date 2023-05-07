@@ -18,12 +18,6 @@ import org.junit.jupiter.api.Test;
 public final class ImmutableImplTest {
 
     @Test
-    public void sourceName() {
-        ImmutableImpl impl = TestImmutableImpls.rectangle();
-        assertThat(impl.sourceName()).isEqualTo("test.ImmutableRectangle");
-    }
-
-    @Test
     public void importManager() {
         ImportManager importManager = TestImmutableImpls.coloredRectangle().importManager();
         String packageName = TestImmutableImpls.coloredRectangle()

@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import java.io.PrintWriter;
 import java.util.Map;
 import org.example.immutable.processor.test.TestResources;
 import org.example.processor.type.ImportableType;
@@ -131,22 +130,5 @@ public final class MemberTypeTest {
     public void serializeAndDeserialize() throws JsonProcessingException {
         MemberType type = MemberType.declaredType(ImportableType.ofClass(String.class));
         TestResources.serializeAndDeserialize(type, new TypeReference<>() {});
-    }
-
-    @Test
-    public void toSource() {
-        MemberType.Namer typeNamer = MemberType.Namer.of(MemberTypeTest::generateSourceForImportableType);
-        MemberType type = MemberType.declaredType(
-                ImportableType.ofClass(Map.class),
-                MemberType.declaredType(ImportableType.ofClass(String.class)),
-                MemberType.declaredType(ImportableType.ofClass(Integer.class)));
-        assertThat(typeNamer.toSource(type)).isEqualTo("Map<java.lang.String, Integer>");
-    }
-
-    private static void generateSourceForImportableType(PrintWriter writer, ImportableType importableType) {
-        String name = !importableType.equals(ImportableType.ofClass(String.class))
-                ? importableType.simpleName()
-                : importableType.qualifiedName();
-        writer.print(name);
     }
 }

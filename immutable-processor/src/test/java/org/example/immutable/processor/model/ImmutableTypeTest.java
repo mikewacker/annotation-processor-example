@@ -12,6 +12,15 @@ import org.junit.jupiter.api.Test;
 public final class ImmutableTypeTest {
 
     @Test
+    public void qualifiedAndSimpleName() {
+        ImmutableType type = ImmutableType.of(
+                MemberType.declaredType(ImportableType.of("test.ImmutableTest")),
+                MemberType.declaredType(ImportableType.of("test.Test")));
+        assertThat(type.qualifiedName()).isEqualTo("test.ImmutableTest");
+        assertThat(type.simpleName()).isEqualTo("ImmutableTest");
+    }
+
+    @Test
     public void typeVars_NonGeneric() {
         ImmutableType type = ImmutableType.of(
                 MemberType.declaredType(ImportableType.of("test.ImmutableTest")),
