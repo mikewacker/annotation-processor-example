@@ -24,6 +24,18 @@ public interface ImmutableType {
                 .build();
     }
 
+    @Value.Derived
+    @JsonIgnore
+    default String qualifiedName() {
+        return implType().rawType().qualifiedName();
+    }
+
+    @Value.Derived
+    @JsonIgnore
+    default String simpleName() {
+        return implType().rawType().simpleName();
+    }
+
     /** Gets the type of the implementing class. */
     MemberType implType();
 

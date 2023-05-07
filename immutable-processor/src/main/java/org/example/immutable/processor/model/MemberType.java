@@ -3,11 +3,9 @@ package org.example.immutable.processor.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.example.processor.source.SourceGenerator;
 import org.example.processor.type.ImportableType;
 import org.immutables.value.Value;
 
@@ -146,28 +144,5 @@ public interface MemberType {
                 String.format("%s%s", rawType().simpleName(), nameFormat().substring(2));
         List<ImportableType> args = args().subList(1, args().size());
         return of(nameFormat, args);
-    }
-
-    /** Generates the source for a {@link MemberType}. */
-    class Namer implements SourceGenerator<MemberType> {
-
-        private final SourceGenerator<ImportableType> importableTypeNamer;
-
-        /** Creates a namer for {@link MemberType}'s from a namer for {@link ImportableType}'s. */
-        public static Namer of(SourceGenerator<ImportableType> importableTypeNamer) {
-            return new Namer(importableTypeNamer);
-        }
-
-        @Override
-        public void generateSource(PrintWriter writer, MemberType type) {
-            Object[] args =
-                    type.args().stream().map(importableTypeNamer::toSource).toArray();
-            String name = String.format(type.nameFormat(), args);
-            writer.print(name);
-        }
-
-        private Namer(SourceGenerator<ImportableType> importableTypeNamer) {
-            this.importableTypeNamer = importableTypeNamer;
-        }
     }
 }
