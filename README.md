@@ -93,7 +93,7 @@ class ImmutableRectangle implements Rectangle {
 
 - `./gradlew -Dorg.gradle.debug=true --no-daemon :immutable-example:clean :immutable-example:compileJava`
   - From there, you can attach a debugger to Gradle.
-  - If you use the [Gradle Error Prone plugin][net.ltgt.errorprone],
+  - If you use the [Gradle Error Prone plugin][net.ltgt.errorprone] with JDK 16+,
     you will also need to [add some JVM args](gradle.properties).
 - You could also debug a test written with [Compile Testing][com.google.testing.compile].
 
@@ -197,16 +197,18 @@ Here is how the annotation processor for `@Immutable` consumes this infrastructu
 
 For end-to-end-testing, Google's [Compile Testing][com.google.testing.compile] framework is used.
 
-Source files are stored in resource folders:
+### Setup (JDK 16+)
 
-- Example source files live in the [`test`][resources/test] folder:
-  - `Rectangle.java`
-  - `ColoredRectangle.java`
-  - `Empty.java`
-- The expected generated source files live in the [`generated/test`][resources/generated/test] folder:
-  - `ImmutableRectangle.java`
-  - `ImmutableColoredRectangle.java`
-  - `ImmutableEmpty.java`
+To use Compile Testing with JDK 16+, you must add these lines to [`build.gradle`](immutable-processor/build.gradle):
+
+```groovy
+test {
+    // See: https://github.com/google/compile-testing/issues/222
+    jvmArgs '--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED'
+    jvmArgs '--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED'
+    jvmArgs '--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED'
+}
+```
 
 ### Compiling the Code
 
@@ -236,9 +238,7 @@ By default, it expects that the compilation will succeed.
 See this snippet from [`ImmutableProcessorTest`][ImmutableProcessorTest], where a compilation failure is expected:
 
 ````java
-private void error(String sourcePath) {
-    TestCompiler.create().expectingCompilationFailure().compile(sourcePath);
-}
+TestCompiler.create().expectingCompilationFailure().compile(sourcePath);
 ````
 
 Compile Testing also provides fluent assertions. Here is the static import to use those assertions:
@@ -246,6 +246,17 @@ Compile Testing also provides fluent assertions. Here is the static import to us
 ```java
 import static com.google.testing.compile.CompilationSubject.assertThat;
 ```
+
+Source files are stored in resource folders:
+
+- Example source files live in the [`test`][resources/test] folder:
+  - `Rectangle.java`
+  - `ColoredRectangle.java`
+  - `Empty.java`
+- The expected generated source files live in the [`generated/test`][resources/generated/test] folder:
+  - `ImmutableRectangle.java`
+  - `ImmutableColoredRectangle.java`
+  - `ImmutableEmpty.java`
 
 ## Unit Testing
 
