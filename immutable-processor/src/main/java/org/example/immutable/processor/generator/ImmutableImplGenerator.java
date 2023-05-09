@@ -13,6 +13,7 @@ import org.example.processor.source.SourceGenerator;
 final class ImmutableImplGenerator {
 
     /** Generates a source file from the {@link ImmutableImpl}. */
+    @SourceScope
     static final class Source implements SourceGenerator<ImmutableImpl> {
 
         private final SourceGenerator<ImportManager> packageAndImportsGenerator;
