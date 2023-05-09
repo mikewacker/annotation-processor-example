@@ -199,14 +199,14 @@ For end-to-end-testing, Google's [Compile Testing][com.google.testing.compile] f
 
 ### Setup (JDK 16+)
 
-To use Compile Testing with JDK 16+, you must add these lines to [`build.gradle`](immutable-processor/build.gradle):
+To use Compile Testing with JDK 16+, add these lines to [`build.gradle.kts`](immutable-processor/build.gradle.kts):
 
 ```groovy
-test {
+tasks.named<Test>("test") {
     // See: https://github.com/google/compile-testing/issues/222
-    jvmArgs '--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED'
-    jvmArgs '--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED'
-    jvmArgs '--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED'
+    jvmArgs("--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED")
+    jvmArgs("--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED")
+    jvmArgs("--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED")
 }
 ```
 

@@ -1,6 +1,0 @@
-rootProject.name = 'immutable'
-
-include 'immutable-annotations'
-include 'immutable-example'
-include 'immutable-processor'
-include 'processor'
