@@ -21,7 +21,7 @@ dependencies {
 
 spotless {
     java {
-        palantirJavaFormat("2.28.0")
+        palantirJavaFormat("2.30.0")
     }
 }
 
