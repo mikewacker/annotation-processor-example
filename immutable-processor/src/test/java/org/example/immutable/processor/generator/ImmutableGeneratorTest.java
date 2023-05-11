@@ -14,6 +14,7 @@ import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.processing.Filer;
+import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
@@ -69,6 +70,12 @@ public final class ImmutableGeneratorTest {
         return new ImmutableGenerator(filer);
     }
 
+    /**
+     * Creates a mock {@link Filer} backed by a mock, in-memory filesystem
+     * where each source name is mapped to a {@link StringWriter} that stores the file's contents.
+     *
+     * <p>The mock {@link Filer} implements {@link Filer#createSourceFile(CharSequence, Element...)}.</p>
+     */
     private static Filer createFiler(Map<String, StringWriter> filesystem) {
         try {
             Filer filer = mock(Filer.class);
@@ -83,6 +90,10 @@ public final class ImmutableGeneratorTest {
         }
     }
 
+    /**
+     * Creates a mock {@link JavaFileObject} that returns the provided {@link Writer}
+     * when {@link JavaFileObject#openWriter} is called.
+     */
     private static JavaFileObject createSourceFileObject(Writer writer) {
         try {
             JavaFileObject sourceFileObject = mock(JavaFileObject.class);
